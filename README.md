@@ -13,8 +13,21 @@ npm test
 npm run typecheck
 ```
 
+Run the local live-test host:
+
+```bash
+npm run harness:dev-live-host
+```
+
+In a second terminal, connect the fake Ableton client:
+
+```bash
+npm run harness:fake-ableton
+```
+
 ## Docs
 
 - [Design](docs/superpowers/specs/2026-05-19-ableton-stream-deck-rack-control-design.md)
 - [Implementation plan](docs/superpowers/plans/2026-05-19-ableton-stream-deck-rack-control-implementation.md)
 - [Development testing](docs/dev-testing.md)
+- [Live testing](docs/live-testing.md)

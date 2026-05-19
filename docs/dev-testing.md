@@ -30,6 +30,29 @@ Run only the WebSocket roundtrip integration test:
 npm test -- tests/integration/websocket-roundtrip.test.ts
 ```
 
+## Dev Live Host
+
+Start a local Stream Deck plugin stand-in:
+
+```bash
+npm run harness:dev-live-host
+```
+
+It starts `StreamDeckBridgeServer` on `ws://127.0.0.1:17375`, registers four
+dial contexts, logs feedback payloads to the console, and accepts simple
+interactive commands:
+
+```text
+b0
+b1
+r <dial 0-3> <ticks> [fine]
+state
+q
+```
+
+This is the fastest manual bridge check before packaging a real Stream Deck
+plugin or Max for Live device.
+
 ## Fake Ableton Client
 
 The fake client connects to a running Stream Deck bridge server, sends
