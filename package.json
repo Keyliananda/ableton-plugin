@@ -5,7 +5,8 @@
   "type": "module",
   "scripts": {
     "test": "vitest run",
-    "typecheck": "tsc --noEmit"
+    "typecheck": "tsc --noEmit",
+    "harness:fake-ableton": "node --experimental-strip-types src/harness/fake-ableton-client.ts"
   },
   "devDependencies": {
     "@types/node": "^20.12.7",

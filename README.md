@@ -1,3 +1,20 @@
-# Ableton Plugin
+# Ableton Stream Deck Rack Control
 
-Shared project workspace for the Ableton plugin.
+TypeScript foundation for controlling the currently selected Ableton Live Rack
+from Stream Deck + dials. The Stream Deck side hosts a localhost WebSocket
+server, tracks the active bank and dial contexts, renders feedback payloads, and
+sends dial deltas back to the Max for Live bridge.
+
+## Development
+
+```bash
+npm install
+npm test
+npm run typecheck
+```
+
+## Docs
+
+- [Design](docs/superpowers/specs/2026-05-19-ableton-stream-deck-rack-control-design.md)
+- [Implementation plan](docs/superpowers/plans/2026-05-19-ableton-stream-deck-rack-control-implementation.md)
+- [Development testing](docs/dev-testing.md)
