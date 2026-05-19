@@ -111,7 +111,7 @@ describe("protocol message guards", () => {
         type: "param.delta",
         deviceId: 12345,
         paramId: 9001,
-        slot: 0,
+        slot: 7,
         ticks: 2,
         fine: false
       })
@@ -133,7 +133,7 @@ describe("protocol message guards", () => {
         type: "param.delta",
         deviceId: 12345,
         paramId: 9001,
-        slot: 4,
+        slot: 8,
         ticks: 2,
         fine: false
       })

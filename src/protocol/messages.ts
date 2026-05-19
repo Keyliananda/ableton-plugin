@@ -159,7 +159,7 @@ export function isPluginToBridgeMessage(value: unknown): value is PluginToBridge
       return (
         isNumber(value.deviceId) &&
         isNumber(value.paramId) &&
-        isSlot(value.slot, 0, 3) &&
+        isSlot(value.slot, 0, 7) &&
         isNumber(value.ticks) &&
         isBoolean(value.fine)
       );
