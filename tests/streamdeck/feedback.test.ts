@@ -83,16 +83,55 @@ describe("renderFeedback", () => {
     expect(adapter.payloads[0]?.payload.title).toBe("[2] Output");
   });
 
-  it("sends disabled blank payloads for empty slots", async () => {
+  it("shows an offline status while the Max bridge is disconnected", async () => {
     const adapter = new FakeFeedbackAdapter();
 
     await renderFeedback(adapter, createDisconnectedState(), ["dial-0", "dial-1", "dial-2", "dial-3"]);
 
     expect(adapter.payloads).toEqual([
-      { context: "dial-0", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-0", payload: { title: "Offline", value: "Max", indicator: { value: 0 }, isEnabled: false } },
       { context: "dial-1", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
       { context: "dial-2", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
       { context: "dial-3", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } }
+    ]);
+  });
+
+  it("shows when the bridge is connected but no Rack is selected", async () => {
+    const adapter = new FakeFeedbackAdapter();
+    const state = applyBridgeMessage(createDisconnectedState(), {
+      type: "bridge.hello",
+      protocolVersion: 1,
+      bridgeName: "Ableton Rack Bridge"
+    });
+
+    await renderFeedback(adapter, state, ["dial-0", "dial-1"]);
+
+    expect(adapter.payloads).toEqual([
+      { context: "dial-0", payload: { title: "No Rack", value: "", indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-1", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } }
+    ]);
+  });
+
+  it("sends disabled blank payloads for empty slots when a Rack is selected", async () => {
+    const adapter = new FakeFeedbackAdapter();
+    const state = applyBridgeMessage(createDisconnectedState(), {
+      type: "device.changed",
+      device: {
+        id: 12345,
+        name: "Performance Rack",
+        className: "AudioEffectGroupDevice",
+        isRack: true
+      },
+      bankCount: 2,
+      activeBank: 0,
+      params: []
+    });
+
+    await renderFeedback(adapter, state, ["dial-0", "dial-1"]);
+
+    expect(adapter.payloads).toEqual([
+      { context: "dial-0", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-1", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } }
     ]);
   });
 });

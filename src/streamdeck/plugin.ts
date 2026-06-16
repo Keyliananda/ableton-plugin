@@ -4,14 +4,12 @@ import {
   type PluginHelloMessage
 } from "../protocol/messages.js";
 import {
-  blankPayload,
-  mappedPayload,
+  renderFeedback,
   type StreamDeckFeedbackAdapter
 } from "./feedback.js";
 import {
   applyBridgeMessage,
   createDisconnectedState,
-  getVisibleSlots,
   rotateDial as buildDialDelta,
   setActiveBank as applyActiveBank,
   toggleDialBank as applyDialBankToggle,
@@ -169,21 +167,7 @@ export class StreamDeckPluginController {
     const contexts = [...this.contexts];
 
     this.renderQueue = this.renderQueue.then(async () => {
-      const slots = getVisibleSlots(state);
-
-      await Promise.all(
-        contexts.map((context, dialIndex) => {
-          if (context === null) {
-            return undefined;
-          }
-
-          const slot = slots[dialIndex];
-          return this.feedback.setFeedback(
-            context,
-            slot?.isEnabled && slot.param ? mappedPayload(slot.param) : blankPayload()
-          );
-        })
-      );
+      await renderFeedback(this.feedback, state, contexts);
     });
   }
 }

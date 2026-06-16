@@ -156,6 +156,43 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     await expect(refresh).resolves.toEqual({ type: "device.refresh" });
   });
 
+  it("shows no-rack feedback after the bridge connects before a Rack is selected", async () => {
+    const feedback = new RecordingFeedbackAdapter();
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback
+    });
+    controllers.push(controller);
+
+    await controller.start();
+    controller.registerDialContext(0, "dial-0");
+    controller.registerDialContext(1, "dial-1");
+
+    const bridge = await connect(controller.address.port);
+    sockets.push(bridge);
+    bridge.send(
+      JSON.stringify({
+        type: "bridge.hello",
+        protocolVersion: 1,
+        bridgeName: "Ableton Rack Bridge"
+      })
+    );
+
+    await waitFor(() => feedback.latest("dial-0")?.title === "No Rack");
+    expect(feedback.latest("dial-0")).toEqual({
+      title: "No Rack",
+      value: "",
+      indicator: { value: 0 },
+      isEnabled: false
+    });
+    expect(feedback.latest("dial-1")).toEqual({
+      title: "",
+      value: "",
+      indicator: { value: 0 },
+      isEnabled: false
+    });
+  });
+
   it("toggles only one dial bank at a time", async () => {
     const controller = new StreamDeckPluginController({
       server: { port: 0 },
@@ -253,7 +290,13 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     bridge.close();
 
     await waitFor(() => controller.getState().connected === false);
-    await waitFor(() => feedback.latest("dial-0")?.isEnabled === false);
+    await waitFor(() => feedback.latest("dial-0")?.title === "Offline");
+    expect(feedback.latest("dial-0")).toEqual({
+      title: "Offline",
+      value: "Max",
+      indicator: { value: 0 },
+      isEnabled: false
+    });
     expect(controller.getState().device).toBeNull();
   });
 });

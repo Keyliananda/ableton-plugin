@@ -13,10 +13,14 @@ var FINE_CONTINUOUS_DIVISOR = 1024;
 var DEBUG = false;
 var STARTUP_POLL_INTERVAL_MS = 500;
 var STARTUP_POLL_TICKS = 20;
+var SELECTION_OBSERVER_DEBOUNCE_MS = 50;
 var SELECTION_WATCH_INTERVAL_MS = 2000;
 var startupPollTask = null;
 var startupPollTicksRemaining = 0;
 var selectionWatchTask = null;
+var selectedTrackObserver = null;
+var selectedDeviceObserver = null;
+var selectionPollTask = null;
 
 function loadbang() {
 }
@@ -39,6 +43,7 @@ function bridge_hello() {
 function bridge_connected() {
   debugLog("[ableton-rack-liveapi] node bridge connected\n");
   bridge_hello();
+  startSelectionObservers();
   startStartupPoll();
   startSelectionWatch();
 }
@@ -89,6 +94,56 @@ function runSelectionWatch() {
   if (deviceId !== selectedDeviceId) {
     poll(true);
   }
+}
+
+function startSelectionObservers() {
+  observeSelectedTrack();
+  observeSelectedDevice();
+}
+
+function observeSelectedTrack() {
+  try {
+    selectedTrackObserver = new LiveAPI(selectedTrackChanged, "live_set view");
+    selectedTrackObserver.property = "selected_track";
+  } catch (error) {
+    post("[ableton-rack-liveapi] selected track observer failed: " + error + "\n");
+    selectedTrackObserver = null;
+  }
+}
+
+function observeSelectedDevice() {
+  try {
+    selectedDeviceObserver = new LiveAPI(selectedDeviceChanged, "live_set view selected_track view");
+    selectedDeviceObserver.property = "selected_device";
+  } catch (error) {
+    post("[ableton-rack-liveapi] selected device observer failed: " + error + "\n");
+    selectedDeviceObserver = null;
+  }
+}
+
+function selectedTrackChanged() {
+  debugLog("[ableton-rack-liveapi] selected_track changed\n");
+  observeSelectedDevice();
+  scheduleSelectionPoll();
+}
+
+function selectedDeviceChanged() {
+  debugLog("[ableton-rack-liveapi] selected_device changed\n");
+  scheduleSelectionPoll();
+}
+
+function scheduleSelectionPoll() {
+  if (selectionPollTask) {
+    selectionPollTask.cancel();
+  }
+
+  selectionPollTask = new Task(runSelectionObserverPoll, this);
+  selectionPollTask.schedule(SELECTION_OBSERVER_DEBOUNCE_MS);
+}
+
+function runSelectionObserverPoll() {
+  selectionPollTask = null;
+  poll(true);
 }
 
 function readSelectedDeviceId() {

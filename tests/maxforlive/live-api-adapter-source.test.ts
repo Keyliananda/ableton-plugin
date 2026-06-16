@@ -54,6 +54,21 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain("new Task(runSelectionWatch");
   });
 
+  it("observes selected track and selected device changes for faster rack switching", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var selectedTrackObserver = null");
+    expect(source).toContain("var selectedDeviceObserver = null");
+    expect(source).toContain("function startSelectionObservers()");
+    expect(source).toContain("startSelectionObservers();");
+    expect(source).toContain('new LiveAPI(selectedTrackChanged, "live_set view")');
+    expect(source).toContain('selectedTrackObserver.property = "selected_track"');
+    expect(source).toContain('new LiveAPI(selectedDeviceChanged, "live_set view selected_track view")');
+    expect(source).toContain('selectedDeviceObserver.property = "selected_device"');
+    expect(source).toContain("function scheduleSelectionPoll()");
+    expect(source).toContain("selectionPollTask.schedule(SELECTION_OBSERVER_DEBOUNCE_MS)");
+  });
+
   it("handles device.toggle through the cached Device On parameter", () => {
     const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
 

@@ -16,12 +16,26 @@ export interface StreamDeckFeedbackAdapter {
 export async function renderFeedback(
   adapter: StreamDeckFeedbackAdapter,
   state: StreamDeckState,
-  contexts: readonly string[]
+  contexts: readonly (string | null)[]
 ): Promise<void> {
+  if (!state.connected) {
+    await renderStatusFeedback(adapter, contexts, statusPayload("Offline", "Max"));
+    return;
+  }
+
+  if (state.device === null) {
+    await renderStatusFeedback(adapter, contexts, statusPayload("No Rack", ""));
+    return;
+  }
+
   const slots = getVisibleSlots(state);
 
   await Promise.all(
     contexts.slice(0, 4).map((context, dialIndex) => {
+      if (context === null) {
+        return undefined;
+      }
+
       const slot = slots[dialIndex];
       return adapter.setFeedback(context, slot?.isEnabled && slot.param ? mappedPayload(slot.param) : blankPayload());
     })
@@ -49,6 +63,31 @@ export function blankPayload(): FeedbackPayload {
     indicator: { value: 0 },
     isEnabled: false
   };
+}
+
+function statusPayload(title: string, value: string): FeedbackPayload {
+  return {
+    title,
+    value,
+    indicator: { value: 0 },
+    isEnabled: false
+  };
+}
+
+async function renderStatusFeedback(
+  adapter: StreamDeckFeedbackAdapter,
+  contexts: readonly (string | null)[],
+  firstPayload: FeedbackPayload
+): Promise<void> {
+  await Promise.all(
+    contexts.slice(0, 4).map((context, dialIndex) => {
+      if (context === null) {
+        return undefined;
+      }
+
+      return adapter.setFeedback(context, dialIndex === 0 ? firstPayload : blankPayload());
+    })
+  );
 }
 
 function clamp01(value: number): number {
