@@ -24,6 +24,13 @@ Run TypeScript checking:
 npm run typecheck
 ```
 
+Build the generated JavaScript used by the direct Node harnesses and the
+Stream Deck plugin entry point:
+
+```bash
+npm run build
+```
+
 Run only the WebSocket roundtrip integration test:
 
 ```bash
@@ -52,6 +59,7 @@ interactive commands:
 ```text
 b0
 b1
+t
 refresh
 r <dial 0-3> <ticks> [fine]
 state
@@ -105,5 +113,5 @@ The following still need manual verification with real software or hardware:
 - Stream Deck SDK action registration and Stream Deck + dial event wiring.
 - `setFeedback` rendering on the actual dial displays and touch strip.
 - Max for Live device packaging inside Ableton Live.
-- Live API observation of selected track/device and Rack macro changes.
+- Live API observation of Rack macro changes that happen outside the plugin.
 - End-to-end latency and behavior during fast dial rotation.

@@ -101,6 +101,38 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     await expect(refresh).resolves.toEqual({ type: "device.refresh" });
   });
 
+  it("sends device.toggle for the currently selected device", async () => {
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback: { setFeedback: () => undefined }
+    });
+    controllers.push(controller);
+
+    await controller.start();
+    const bridge = await connect(controller.address.port);
+    sockets.push(bridge);
+    bridge.send(
+      JSON.stringify({
+        type: "device.changed",
+        device: {
+          id: 12345,
+          name: "Performance Rack",
+          className: "AudioEffectGroupDevice",
+          isRack: true
+        },
+        bankCount: 2,
+        activeBank: 0,
+        params: []
+      })
+    );
+    await waitFor(() => controller.getState().device?.id === 12345);
+
+    const toggle = onceSocketMessage(bridge);
+
+    expect(controller.toggleSelectedDevice()).toBe(true);
+    await expect(toggle).resolves.toEqual({ type: "device.toggle", deviceId: 12345 });
+  });
+
   it("requests a device refresh when the bridge says hello", async () => {
     const controller = new StreamDeckPluginController({
       server: { port: 0 },

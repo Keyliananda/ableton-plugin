@@ -9,6 +9,7 @@ sends dial deltas back to the Max for Live bridge.
 
 ```bash
 npm install
+npm run build
 npm test
 npm run typecheck
 ```

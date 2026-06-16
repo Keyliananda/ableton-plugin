@@ -25,7 +25,7 @@ export async function runDevLiveHost(options: DevLiveHostOptions = {}): Promise<
   controller.sendHello();
 
   console.log(`[dev-live-host] listening on ws://127.0.0.1:${controller.address.port}`);
-  console.log("[dev-live-host] commands: b0, b1, refresh, r <dial 0-3> <ticks> [fine], state, help, q");
+  console.log("[dev-live-host] commands: b0, b1, t, refresh, r <dial 0-3> <ticks> [fine], state, help, q");
 
   const close = async (): Promise<void> => {
     console.log("[dev-live-host] stopping");
@@ -79,11 +79,19 @@ function handleCommand(controller: StreamDeckPluginController, line: string): vo
       controller.requestDeviceRefresh();
       console.log("[dev-live-host] requested selected-device refresh");
       return;
+    case "t":
+    case "toggle":
+      if (controller.toggleSelectedDevice()) {
+        console.log("[dev-live-host] toggled selected device");
+        return;
+      }
+      console.log("[dev-live-host] no selected device to toggle; use state to inspect current mapping");
+      return;
     case "state":
       console.log(JSON.stringify(controller.getState(), null, 2));
       return;
     case "help":
-      console.log("b0 | b1 | refresh | r <dial 0-3> <ticks> [fine] | state | q");
+      console.log("b0 | b1 | t | toggle | refresh | r <dial 0-3> <ticks> [fine] | state | q");
       return;
     default:
       console.log(`[dev-live-host] unknown command: ${command}`);

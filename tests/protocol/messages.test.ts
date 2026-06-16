@@ -106,6 +106,7 @@ describe("protocol message guards", () => {
 
     expect(isPluginToBridgeMessage({ type: "bank.set", bank: 1 })).toBe(true);
     expect(isPluginToBridgeMessage({ type: "device.refresh" })).toBe(true);
+    expect(isPluginToBridgeMessage({ type: "device.toggle", deviceId: 12345 })).toBe(true);
 
     expect(
       isPluginToBridgeMessage({
@@ -122,6 +123,7 @@ describe("protocol message guards", () => {
   it("rejects malformed plugin-to-bridge messages", () => {
     expect(isPluginToBridgeMessage(undefined)).toBe(false);
     expect(isPluginToBridgeMessage({ type: "bank.set", bank: 2 })).toBe(false);
+    expect(isPluginToBridgeMessage({ type: "device.toggle" })).toBe(false);
     expect(
       isPluginToBridgeMessage({
         type: "plugin.hello",

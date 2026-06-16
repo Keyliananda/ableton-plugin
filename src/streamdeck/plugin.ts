@@ -146,6 +146,15 @@ export class StreamDeckPluginController {
     this.server.send({ type: "device.refresh" });
   }
 
+  toggleSelectedDevice(): boolean {
+    if (this.state.device === null) {
+      return false;
+    }
+
+    this.server.send({ type: "device.toggle", deviceId: this.state.device.id });
+    return true;
+  }
+
   sendHello(): void {
     this.server.send(createPluginHello());
   }

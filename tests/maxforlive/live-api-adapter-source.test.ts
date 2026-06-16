@@ -53,4 +53,13 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain("poll(true);");
     expect(source).toContain("new Task(runSelectionWatch");
   });
+
+  it("handles device.toggle through the cached Device On parameter", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain('message.type === "device.toggle"');
+    expect(source).toContain("function applyDeviceToggle(message)");
+    expect(source).toContain("findDeviceOnParam()");
+    expect(source).toContain("writeParamValue(param, nextValue)");
+  });
 });

@@ -18,18 +18,6 @@
         }
       ],
       "UUID": "de.daniel.ableton-rack-control.dial"
-    },
-    {
-      "Controllers": ["Keypad"],
-      "Icon": "imgs/action",
-      "Name": "Refresh Rack",
-      "States": [
-        {
-          "Image": "imgs/action"
-        }
-      ],
-      "Tooltip": "Refresh selected Ableton Rack",
-      "UUID": "de.daniel.ableton-rack-control.refresh"
     }
   ],
   "Author": "Daniel",

@@ -164,6 +164,11 @@ function handlePluginMessage(message) {
     return;
   }
 
+  if (message.type === "device.toggle") {
+    applyDeviceToggle(message);
+    return;
+  }
+
   if (message.type === "param.delta") {
     applyParamDelta(message);
   }
@@ -190,6 +195,35 @@ function applyParamDelta(message) {
     ? clamp(Math.round(param.value) + message.ticks, param.min, param.max)
     : clamp(param.value + message.ticks * ((param.max - param.min) / (message.fine ? FINE_CONTINUOUS_DIVISOR : COARSE_CONTINUOUS_DIVISOR)), param.min, param.max);
 
+  writeParamValue(param, nextValue);
+}
+
+function applyDeviceToggle(message) {
+  if (selectedDeviceId !== message.deviceId) {
+    return;
+  }
+
+  var param = findDeviceOnParam();
+  if (!param || !param.isEnabled) {
+    return;
+  }
+
+  var midpoint = param.min + (param.max - param.min) / 2;
+  var nextValue = param.value > midpoint ? param.min : param.max;
+  writeParamValue(param, nextValue);
+}
+
+function findDeviceOnParam() {
+  for (var i = 0; i < selectedParams.length; i += 1) {
+    if (selectedParams[i].name === "Device On") {
+      return selectedParams[i];
+    }
+  }
+
+  return null;
+}
+
+function writeParamValue(param, nextValue) {
   try {
     var liveParam = new LiveAPI(null, "id " + param.id);
     liveParam.set("value", nextValue);

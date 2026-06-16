@@ -66,6 +66,11 @@ export class LiveBridgeController {
       return;
     }
 
+    if (message.type === "device.toggle") {
+      await this.applyDeviceToggle(message.deviceId);
+      return;
+    }
+
     if (message.type === "param.delta") {
       await this.applyParamDelta(message);
     }
@@ -85,6 +90,23 @@ export class LiveBridgeController {
       ? applyQuantizedDelta(param, message.ticks)
       : applyContinuousDelta(param, message.ticks, message.fine);
 
+    await this.adapter.setParameterValue(this.selectedDevice.id, param.id, nextValue);
+    param.value = nextValue;
+    param.normalized = normalizeParam({ ...param, value: nextValue }).normalized;
+  }
+
+  async applyDeviceToggle(deviceId: number): Promise<void> {
+    if (this.selectedDevice === null || this.selectedDevice.id !== deviceId) {
+      return;
+    }
+
+    const param = this.params.find((candidate) => candidate.name === "Device On");
+    if (param === undefined || !param.isEnabled) {
+      return;
+    }
+
+    const midpoint = param.min + (param.max - param.min) / 2;
+    const nextValue = param.value > midpoint ? param.min : param.max;
     await this.adapter.setParameterValue(this.selectedDevice.id, param.id, nextValue);
     param.value = nextValue;
     param.normalized = normalizeParam({ ...param, value: nextValue }).normalized;

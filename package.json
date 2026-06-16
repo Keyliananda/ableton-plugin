@@ -4,6 +4,7 @@
   "private": true,
   "type": "module",
   "scripts": {
+    "build": "tsc --outDir dist --noEmit false",
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
     "maxforlive:sync": "node scripts/sync-maxforlive.mjs",

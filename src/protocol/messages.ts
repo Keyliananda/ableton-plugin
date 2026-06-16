@@ -94,7 +94,17 @@ export type DeviceRefreshMessage = {
   type: "device.refresh";
 };
 
-export type PluginToBridgeMessage = PluginHelloMessage | BankSetMessage | ParamDeltaMessage | DeviceRefreshMessage;
+export type DeviceToggleMessage = {
+  type: "device.toggle";
+  deviceId: number;
+};
+
+export type PluginToBridgeMessage =
+  | PluginHelloMessage
+  | BankSetMessage
+  | ParamDeltaMessage
+  | DeviceRefreshMessage
+  | DeviceToggleMessage;
 
 export function normalizeParam(rawParam: RawRackParam): RackParam {
   const min = rawParam.min ?? 0;
@@ -161,6 +171,8 @@ export function isPluginToBridgeMessage(value: unknown): value is PluginToBridge
       return isBank(value.bank);
     case "device.refresh":
       return true;
+    case "device.toggle":
+      return isNumber(value.deviceId);
     case "param.delta":
       return (
         isNumber(value.deviceId) &&

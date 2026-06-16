@@ -188,4 +188,31 @@ describe("LiveBridgeController", () => {
     expect(messages).toHaveLength(1);
     expect(messages[0]).toMatchObject({ type: "device.changed", device: { id: 123 } });
   });
+
+  it("toggles the selected rack Device On parameter", async () => {
+    const adapter = new FakeLiveAdapter(
+      device([parameter(0, { name: "Device On", value: 1, min: 0, max: 1, isQuantized: true })])
+    );
+    const controller = new LiveBridgeController(adapter, () => undefined);
+    await controller.refreshSelectedDevice();
+
+    await controller.handleMessage({ type: "device.toggle", deviceId: 123 });
+    await controller.handleMessage({ type: "device.toggle", deviceId: 123 });
+
+    expect(adapter.writes).toEqual([
+      { deviceId: 123, paramId: 9000, value: 0 },
+      { deviceId: 123, paramId: 9000, value: 1 }
+    ]);
+  });
+
+  it("ignores device.toggle for stale devices or missing Device On parameters", async () => {
+    const adapter = new FakeLiveAdapter(device([parameter(1, { name: "Level" })]));
+    const controller = new LiveBridgeController(adapter, () => undefined);
+    await controller.refreshSelectedDevice();
+
+    await controller.handleMessage({ type: "device.toggle", deviceId: 999 });
+    await controller.handleMessage({ type: "device.toggle", deviceId: 123 });
+
+    expect(adapter.writes).toEqual([]);
+  });
 });

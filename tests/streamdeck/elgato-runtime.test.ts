@@ -2,8 +2,6 @@ import { describe, expect, it } from "vitest";
 import {
   ACTION_UUID,
   RackDialAction,
-  REFRESH_ACTION_UUID,
-  RefreshRackAction,
   StreamDeckActionFeedbackAdapter,
   startAbletonRackStreamDeckPlugin,
   type RuntimeStreamDeck
@@ -146,16 +144,6 @@ describe("Stream Deck Elgato runtime", () => {
     expect(controller.unregistered).toEqual(["ctx-2"]);
   });
 
-  it("requests a selected Rack refresh from the refresh key action", async () => {
-    const controller = new FakeController();
-    const action = new RefreshRackAction(controller);
-
-    await action.onKeyDown?.({} as never);
-
-    expect(action.manifestId).toBe(REFRESH_ACTION_UUID);
-    expect(controller.refreshRequests).toBe(1);
-  });
-
   it("starts the bridge controller before connecting to Stream Deck", async () => {
     const controller = new FakeController();
     const streamDeck = new FakeStreamDeck();
@@ -165,7 +153,7 @@ describe("Stream Deck Elgato runtime", () => {
     expect(controller.started).toBe(true);
     expect(controller.helloSent).toBe(true);
     expect(controller.refreshRequests).toBe(1);
-    expect(streamDeck.actionConstructors).toEqual([RackDialAction, RefreshRackAction]);
+    expect(streamDeck.actionConstructors).toEqual([RackDialAction]);
     expect(streamDeck.connected).toBe(true);
   });
 });

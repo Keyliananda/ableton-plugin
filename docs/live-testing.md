@@ -84,7 +84,8 @@ Wire them like this:
 Reload the Max device, select the Rack in Ableton, and the bridge should start
 and refresh automatically. Click `script start` or `bang` only as manual
 fallbacks while testing. The bridge polls again after each successful dial
-write.
+write, and it gently watches the selected Ableton device so the dial labels
+switch automatically after selecting another Rack.
 
 After the bridge is connected, the dev host can also request that same selected
 Rack refresh from the console with:
@@ -93,12 +94,9 @@ Rack refresh from the console with:
 refresh
 ```
 
-The real Stream Deck plugin also provides a **Refresh Rack** keypad action.
-Place it on a key and press it to request the selected Rack mapping from Max for
-Live without clicking the Max `bang` button.
-
-The plugin also requests a refresh automatically when the Max bridge connects,
-so the button is mainly a manual fallback after changing the selected Rack.
+The real Stream Deck plugin does not need a visible refresh key. It requests a
+refresh automatically when the Max bridge connects, and the Max device refreshes
+the mapping automatically when the selected Ableton device changes.
 
 ## 4. Select A Rack
 
@@ -121,6 +119,7 @@ In the PowerShell host, type:
 ```text
 state
 refresh
+t
 r 0 1
 r 1 -2
 b1
@@ -129,12 +128,15 @@ r 0 3
 
 Expected result:
 
-- `refresh` asks Max for Live to resend the currently selected Rack mapping.
+- `refresh` asks Max for Live to resend the currently selected Rack mapping; it
+  is a dev-host fallback, not a required Stream Deck action.
+- `t` toggles the selected Rack's `Device On` parameter.
 - `r 0 1` changes the first visible Macro.
 - `b1` switches to Macros 5-8.
 - `r 0 3` changes Macro 5.
 
 ## Notes
 
-This proves Ableton Live API read/write plus protocol behavior. It is not yet the
-final Stream Deck hardware plugin. The Stream Deck SDK wrapper is the next layer.
+This proves Ableton Live API read/write plus protocol behavior through the
+developer host. The Stream Deck plugin uses the same bridge protocol, but the
+actual hardware display and dial events still need real-device verification.
