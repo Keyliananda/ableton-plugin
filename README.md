@@ -15,6 +15,21 @@ npm test
 npm run typecheck
 ```
 
+Build a portable Windows release package:
+
+```bash
+npm run build
+npm run package:release
+```
+
+The generated package is written to `release/AbletonRackControl-<version>` and
+contains `install.ps1`, README/INSTALL docs, the portable Stream Deck plugin,
+the Max for Live bridge runtime, and the `Ableton Stream Deck 2.amxd` device.
+The installer copies the device into Ableton's User Library. It prefers
+`N:\Ableton Wolke\Ableton\User Library` when that cloud library exists, otherwise
+it falls back to `Documents\Ableton\User Library`. Set `ABLETON_USER_LIBRARY` to
+override the target path.
+
 Run the local live-test host:
 
 ```bash
