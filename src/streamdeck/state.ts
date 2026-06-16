@@ -35,15 +35,18 @@ export function applyBridgeMessage(
   switch (message.type) {
     case "bridge.hello":
       return { ...state, connected: true };
-    case "device.changed":
+    case "device.changed": {
+      const sameDevice = state.device?.id === message.device.id;
+
       return {
         connected: true,
         device: message.device,
         bankCount: message.bankCount,
         activeBank: normalizeBank(message.activeBank),
-        dialBanks: state.dialBanks,
+        dialBanks: sameDevice ? state.dialBanks : [0, 0, 0, 0],
         params: message.params
       };
+    }
     case "param.changed":
       if (state.device?.id !== message.deviceId) {
         return state;

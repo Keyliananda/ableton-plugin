@@ -26,11 +26,11 @@ function param(slot: number, overrides: Partial<RackParam> = {}): RackParam {
   };
 }
 
-function deviceChanged(params: RackParam[], activeBank = 0): DeviceChangedMessage {
+function deviceChanged(params: RackParam[], activeBank = 0, deviceId = 12345): DeviceChangedMessage {
   return {
     type: "device.changed",
     device: {
-      id: 12345,
+      id: deviceId,
       name: "Performance Rack",
       className: "AudioEffectGroupDevice",
       isRack: true
@@ -119,6 +119,28 @@ describe("stream deck state", () => {
       paramId: 9000,
       slot: 0
     });
+  });
+
+  it("keeps dial banks when the same device refreshes", () => {
+    const state = toggleDialBank(
+      applyBridgeMessage(createDisconnectedState(), deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)))),
+      1
+    );
+
+    const next = applyBridgeMessage(state, deviceChanged(Array.from({ length: 8 }, (_, index) => param(index))));
+
+    expect(getVisibleSlots(next).map((slot) => slot.slot)).toEqual([0, 5, 2, 3]);
+  });
+
+  it("resets dial banks when a different device is selected", () => {
+    const state = toggleDialBank(
+      applyBridgeMessage(createDisconnectedState(), deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)))),
+      1
+    );
+
+    const next = applyBridgeMessage(state, deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)), 0, 67890));
+
+    expect(getVisibleSlots(next).map((slot) => slot.slot)).toEqual([0, 1, 2, 3]);
   });
 
   it("does not emit a command when rotating an empty slot", () => {
