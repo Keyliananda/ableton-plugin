@@ -35,6 +35,7 @@ export class StreamDeckPluginController {
   private unsubscribeServer: (() => void) | null = null;
   private unsubscribeServerDisconnect: (() => void) | null = null;
   private renderQueue: Promise<void> = Promise.resolve();
+  private feedbackRenderQueued = false;
 
   constructor(options: StreamDeckPluginControllerOptions) {
     this.server =
@@ -163,11 +164,14 @@ export class StreamDeckPluginController {
   }
 
   private queueFeedbackRender(): void {
-    const state = this.state;
-    const contexts = [...this.contexts];
+    if (this.feedbackRenderQueued) {
+      return;
+    }
 
+    this.feedbackRenderQueued = true;
     this.renderQueue = this.renderQueue.then(async () => {
-      await renderFeedback(this.feedback, state, contexts);
+      this.feedbackRenderQueued = false;
+      await renderFeedback(this.feedback, this.state, [...this.contexts]);
     });
   }
 }

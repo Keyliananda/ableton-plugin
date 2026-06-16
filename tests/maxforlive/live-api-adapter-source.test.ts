@@ -61,8 +61,18 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain("observeSelectedParams(params)");
     expect(source).toContain("function observeSelectedParams(params)");
     expect(source).toContain('observer.property = "value"');
-    expect(source).toContain("function selectedParamValueChanged(paramId)");
+    expect(source).toContain("function selectedParamValueChanged(paramId, observerGeneration)");
     expect(source).toContain('type: "param.changed"');
+  });
+
+  it("guards parameter observer callbacks after observer cleanup", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var selectedParamObserverGeneration = 0");
+    expect(source).toContain("selectedParamObserverGeneration += 1");
+    expect(source).toContain("observeSelectedParam(params[i].id, selectedParamObserverGeneration)");
+    expect(source).toContain("selectedParamValueChanged(paramId, observerGeneration)");
+    expect(source).toContain("if (observerGeneration !== selectedParamObserverGeneration)");
   });
 
   it("observes selected track and selected device changes for faster rack switching", () => {
@@ -78,6 +88,17 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain('selectedDeviceObserver.property = "selected_device"');
     expect(source).toContain("function scheduleSelectionPoll()");
     expect(source).toContain("selectionPollTask.schedule(SELECTION_OBSERVER_DEBOUNCE_MS)");
+  });
+
+  it("clears selection observers before registering replacements", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("function clearSelectionObservers()");
+    expect(source).toContain("clearSelectionObserver(selectedTrackObserver)");
+    expect(source).toContain("clearSelectionObserver(selectedDeviceObserver)");
+    expect(source).toContain("selectedTrackObserver = null");
+    expect(source).toContain("selectedDeviceObserver = null");
+    expect(source).toContain("clearSelectionObservers();\n  observeSelectedTrack();");
   });
 
   it("handles device.toggle through the cached Device On parameter", () => {

@@ -10,6 +10,7 @@ var selectedParams = [];
 var selectedDeviceOnParam = null;
 var selectedParamObservers = [];
 var selectedParamObserverSignature = "";
+var selectedParamObserverGeneration = 0;
 var COARSE_CONTINUOUS_DIVISOR = 128;
 var FINE_CONTINUOUS_DIVISOR = 1024;
 var DEBUG = false;
@@ -99,6 +100,7 @@ function runSelectionWatch() {
 }
 
 function startSelectionObservers() {
+  clearSelectionObservers();
   observeSelectedTrack();
   observeSelectedDevice();
 }
@@ -114,12 +116,33 @@ function observeSelectedTrack() {
 }
 
 function observeSelectedDevice() {
+  clearSelectionObserver(selectedDeviceObserver);
+  selectedDeviceObserver = null;
+
   try {
     selectedDeviceObserver = new LiveAPI(selectedDeviceChanged, "live_set view selected_track view");
     selectedDeviceObserver.property = "selected_device";
   } catch (error) {
     post("[ableton-rack-liveapi] selected device observer failed: " + error + "\n");
     selectedDeviceObserver = null;
+  }
+}
+
+function clearSelectionObservers() {
+  clearSelectionObserver(selectedTrackObserver);
+  clearSelectionObserver(selectedDeviceObserver);
+  selectedTrackObserver = null;
+  selectedDeviceObserver = null;
+}
+
+function clearSelectionObserver(observer) {
+  if (!observer) {
+    return;
+  }
+
+  try {
+    observer.property = "";
+  } catch (_) {
   }
 }
 
@@ -218,14 +241,14 @@ function observeSelectedParams(params) {
   selectedParamObserverSignature = signature;
 
   for (var i = 0; i < params.length; i += 1) {
-    observeSelectedParam(params[i].id);
+    observeSelectedParam(params[i].id, selectedParamObserverGeneration);
   }
 }
 
-function observeSelectedParam(paramId) {
+function observeSelectedParam(paramId, observerGeneration) {
   try {
     var observer = new LiveAPI(function() {
-      selectedParamValueChanged(paramId);
+      selectedParamValueChanged(paramId, observerGeneration);
     }, "id " + paramId);
     observer.property = "value";
     selectedParamObservers.push(observer);
@@ -235,6 +258,8 @@ function observeSelectedParam(paramId) {
 }
 
 function clearSelectedParamObservers() {
+  selectedParamObserverGeneration += 1;
+
   for (var i = 0; i < selectedParamObservers.length; i += 1) {
     try {
       selectedParamObservers[i].property = "";
@@ -246,7 +271,11 @@ function clearSelectedParamObservers() {
   selectedParamObserverSignature = "";
 }
 
-function selectedParamValueChanged(paramId) {
+function selectedParamValueChanged(paramId, observerGeneration) {
+  if (observerGeneration !== selectedParamObserverGeneration) {
+    return;
+  }
+
   var param = findSelectedParamById(paramId);
 
   if (!param || !param.isEnabled || !selectedDeviceId) {
