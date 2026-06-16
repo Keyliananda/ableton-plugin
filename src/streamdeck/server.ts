@@ -17,6 +17,7 @@ export interface StreamDeckBridgeServerAddress {
 }
 
 export type BridgeMessageListener = (message: BridgeToPluginMessage) => void;
+export type BridgeDisconnectListener = () => void;
 
 export class StreamDeckBridgeServer {
   private readonly host: string;
@@ -24,6 +25,7 @@ export class StreamDeckBridgeServer {
   private readonly server: http.Server;
   private readonly clients = new Set<Socket>();
   private readonly listeners = new Set<BridgeMessageListener>();
+  private readonly disconnectListeners = new Set<BridgeDisconnectListener>();
   private started = false;
 
   constructor(options: StreamDeckBridgeServerOptions) {
@@ -71,6 +73,14 @@ export class StreamDeckBridgeServer {
 
     return () => {
       this.listeners.delete(listener);
+    };
+  }
+
+  onDisconnect(listener: BridgeDisconnectListener): () => void {
+    this.disconnectListeners.add(listener);
+
+    return () => {
+      this.disconnectListeners.delete(listener);
     };
   }
 
@@ -146,13 +156,30 @@ export class StreamDeckBridgeServer {
       for (const text of result.messages) {
         this.receiveText(text);
       }
+
+      if (result.shouldClose) {
+        socket.end(encodeCloseFrame());
+        socket.destroy();
+        this.deleteClient(socket);
+      }
     });
     socket.on("close", () => {
-      this.clients.delete(socket);
+      this.deleteClient(socket);
     });
     socket.on("error", () => {
-      this.clients.delete(socket);
+      this.deleteClient(socket);
     });
+  }
+
+  private deleteClient(socket: Socket): void {
+    const existed = this.clients.delete(socket);
+    if (!existed) {
+      return;
+    }
+
+    for (const listener of this.disconnectListeners) {
+      listener();
+    }
   }
 
   private receiveText(text: string): void {
@@ -206,9 +233,10 @@ function encodeFrame(opcode: number, payload: Buffer): Buffer {
 
 function decodeTextFrames(
   buffer: Buffer<ArrayBufferLike>
-): { messages: string[]; remaining: Buffer<ArrayBufferLike> } {
+): { messages: string[]; remaining: Buffer<ArrayBufferLike>; shouldClose: boolean } {
   const messages: string[] = [];
   let offset = 0;
+  let shouldClose = false;
 
   while (offset + 2 <= buffer.length) {
     const firstByte = buffer[offset];
@@ -232,7 +260,7 @@ function decodeTextFrames(
 
       const largeLength = buffer.readBigUInt64BE(offset + headerLength);
       if (largeLength > BigInt(Number.MAX_SAFE_INTEGER)) {
-        return { messages, remaining: Buffer.alloc(0) };
+        return { messages, remaining: Buffer.alloc(0), shouldClose: true };
       }
 
       payloadLength = Number(largeLength);
@@ -247,6 +275,7 @@ function decodeTextFrames(
     }
 
     if (opcode === 0x8) {
+      shouldClose = true;
       offset = frameEnd;
       continue;
     }
@@ -268,5 +297,5 @@ function decodeTextFrames(
     offset = frameEnd;
   }
 
-  return { messages, remaining: buffer.subarray(offset) };
+  return { messages, remaining: buffer.subarray(offset), shouldClose };
 }

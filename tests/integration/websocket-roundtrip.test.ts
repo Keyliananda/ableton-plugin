@@ -1,5 +1,6 @@
 import { afterEach, describe, expect, it } from "vitest";
 import type { PluginToBridgeMessage } from "../../src/protocol/messages.js";
+import type { FeedbackPayload, StreamDeckFeedbackAdapter } from "../../src/streamdeck/feedback.js";
 import { StreamDeckPluginController } from "../../src/streamdeck/plugin.js";
 
 const controllers: StreamDeckPluginController[] = [];
@@ -133,7 +134,69 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     controller.rotateDial(0, 2, false);
     await expect(firstDialDelta).resolves.toMatchObject({ paramId: 9000, slot: 0 });
   });
+
+  it("clears cached state and dial feedback when the bridge disconnects", async () => {
+    const feedback = new RecordingFeedbackAdapter();
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback
+    });
+    controllers.push(controller);
+
+    await controller.start();
+    controller.registerDialContext(0, "dial-0");
+
+    const bridge = await connect(controller.address.port);
+    sockets.push(bridge);
+    bridge.send(
+      JSON.stringify({
+        type: "device.changed",
+        device: {
+          id: 12345,
+          name: "Performance Rack",
+          className: "AudioEffectGroupDevice",
+          isRack: true
+        },
+        bankCount: 2,
+        activeBank: 0,
+        params: [
+          {
+            slot: 0,
+            id: 9000,
+            name: "Level",
+            value: 0.5,
+            displayValue: "50%",
+            min: 0,
+            max: 1,
+            normalized: 0.5,
+            isQuantized: false,
+            isEnabled: true,
+            valueItems: []
+          }
+        ]
+      })
+    );
+    await waitFor(() => feedback.latest("dial-0")?.title === "Level");
+
+    bridge.close();
+
+    await waitFor(() => controller.getState().connected === false);
+    await waitFor(() => feedback.latest("dial-0")?.isEnabled === false);
+    expect(controller.getState().device).toBeNull();
+  });
 });
+
+class RecordingFeedbackAdapter implements StreamDeckFeedbackAdapter {
+  readonly payloads: Array<{ context: string; payload: FeedbackPayload }> = [];
+
+  setFeedback(context: string, payload: FeedbackPayload): void {
+    this.payloads.push({ context, payload });
+  }
+
+  latest(context: string): FeedbackPayload | undefined {
+    return this.payloads.filter((entry) => entry.context === context).at(-1)?.payload;
+  }
+}
 
 function connect(port: number): Promise<WebSocket> {
   return new Promise((resolve, reject) => {

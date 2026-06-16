@@ -82,11 +82,30 @@ describe("StreamDeckBridgeServer", () => {
 
     expect(messages).toEqual([]);
   });
+
+  it("notifies listeners when a bridge client disconnects", async () => {
+    const server = new StreamDeckBridgeServer({ port: 0 });
+    servers.push(server);
+    await server.start();
+    const socket = await connect(server.address.port);
+    sockets.push(socket);
+    const disconnected = onceBridgeDisconnect(server);
+
+    socket.close();
+
+    await expect(disconnected).resolves.toBeUndefined();
+  });
 });
 
 function onceBridgeMessage(server: StreamDeckBridgeServer): Promise<BridgeToPluginMessage> {
   return new Promise((resolve) => {
     server.onMessage((message) => resolve(message));
+  });
+}
+
+function onceBridgeDisconnect(server: StreamDeckBridgeServer): Promise<void> {
+  return new Promise((resolve) => {
+    server.onDisconnect(() => resolve());
   });
 }
 

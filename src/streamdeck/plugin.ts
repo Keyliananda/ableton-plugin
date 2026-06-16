@@ -35,6 +35,7 @@ export class StreamDeckPluginController {
   private readonly contexts: Array<string | null> = [null, null, null, null];
   private state: StreamDeckState;
   private unsubscribeServer: (() => void) | null = null;
+  private unsubscribeServerDisconnect: (() => void) | null = null;
   private renderQueue: Promise<void> = Promise.resolve();
 
   constructor(options: StreamDeckPluginControllerOptions) {
@@ -60,6 +61,11 @@ export class StreamDeckPluginController {
         void this.handleBridgeMessage(message);
       });
     }
+    if (this.unsubscribeServerDisconnect === null) {
+      this.unsubscribeServerDisconnect = this.server.onDisconnect(() => {
+        this.handleBridgeDisconnect();
+      });
+    }
 
     await this.server.start();
     this.queueFeedbackRender();
@@ -68,6 +74,8 @@ export class StreamDeckPluginController {
   async stop(): Promise<void> {
     this.unsubscribeServer?.();
     this.unsubscribeServer = null;
+    this.unsubscribeServerDisconnect?.();
+    this.unsubscribeServerDisconnect = null;
     await this.renderQueue;
     await this.server.close();
   }
@@ -94,6 +102,11 @@ export class StreamDeckPluginController {
     this.state = applyBridgeMessage(this.state, message);
     this.queueFeedbackRender();
     await this.renderQueue;
+  }
+
+  handleBridgeDisconnect(): void {
+    this.state = createDisconnectedState();
+    this.queueFeedbackRender();
   }
 
   setBank(bank: number): void {
