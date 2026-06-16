@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import type { RackParam } from "../../src/protocol/messages.js";
-import { applyBridgeMessage, createDisconnectedState } from "../../src/streamdeck/state.js";
+import { applyBridgeMessage, createDisconnectedState, toggleDialBank } from "../../src/streamdeck/state.js";
 import { renderFeedback, type FeedbackPayload, type StreamDeckFeedbackAdapter } from "../../src/streamdeck/feedback.js";
 
 function param(slot: number, overrides: Partial<RackParam> = {}): RackParam {
@@ -55,6 +55,32 @@ describe("renderFeedback", () => {
         isEnabled: true
       }
     });
+  });
+
+  it("marks second-layer dial titles", async () => {
+    const adapter = new FakeFeedbackAdapter();
+    const state = toggleDialBank(
+      applyBridgeMessage(createDisconnectedState(), {
+        type: "device.changed",
+        device: {
+          id: 12345,
+          name: "Performance Rack",
+          className: "AudioEffectGroupDevice",
+          isRack: true
+        },
+        bankCount: 2,
+        activeBank: 0,
+        params: [
+          param(0, { name: "Level" }),
+          param(4, { name: "Output" })
+        ]
+      }),
+      0
+    );
+
+    await renderFeedback(adapter, state, ["dial-0"]);
+
+    expect(adapter.payloads[0]?.payload.title).toBe("[2] Output");
   });
 
   it("sends disabled blank payloads for empty slots", async () => {

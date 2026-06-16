@@ -28,16 +28,21 @@ export async function renderFeedback(
   );
 }
 
-function mappedPayload(param: { name: string; displayValue: string; normalized: number }): FeedbackPayload {
+export function mappedPayload(param: {
+  slot: number;
+  name: string;
+  displayValue: string;
+  normalized: number;
+}): FeedbackPayload {
   return {
-    title: param.name,
+    title: param.slot >= 4 ? `[2] ${param.name}` : param.name,
     value: param.displayValue,
     indicator: { value: Math.round(clamp01(param.normalized) * 100) },
     isEnabled: true
   };
 }
 
-function blankPayload(): FeedbackPayload {
+export function blankPayload(): FeedbackPayload {
   return {
     title: "",
     value: "",

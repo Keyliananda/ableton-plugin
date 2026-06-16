@@ -4,7 +4,8 @@ import {
   type PluginHelloMessage
 } from "../protocol/messages.js";
 import {
-  type FeedbackPayload,
+  blankPayload,
+  mappedPayload,
   type StreamDeckFeedbackAdapter
 } from "./feedback.js";
 import {
@@ -169,28 +170,3 @@ function isDialIndex(value: number): value is 0 | 1 | 2 | 3 {
   return Number.isInteger(value) && value >= 0 && value <= 3;
 }
 
-function mappedPayload(param: { name: string; displayValue: string; normalized: number }): FeedbackPayload {
-  return {
-    title: param.name,
-    value: param.displayValue,
-    indicator: { value: Math.round(clamp01(param.normalized) * 100) },
-    isEnabled: true
-  };
-}
-
-function blankPayload(): FeedbackPayload {
-  return {
-    title: "",
-    value: "",
-    indicator: { value: 0 },
-    isEnabled: false
-  };
-}
-
-function clamp01(value: number): number {
-  if (Number.isNaN(value)) {
-    return 0;
-  }
-
-  return Math.min(1, Math.max(0, value));
-}
