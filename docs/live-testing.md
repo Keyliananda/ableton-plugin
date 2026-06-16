@@ -26,6 +26,10 @@ in the Max runtime folder.
 
 ## 2. Start The Local Host
 
+Use this section only when testing without the real Stream Deck app. If the
+Stream Deck app is running, close it first; otherwise both processes compete for
+`127.0.0.1:17375`.
+
 Open PowerShell in the repo and run:
 
 ```powershell
@@ -40,6 +44,9 @@ npm run harness:dev-live-host
 ```
 
 Leave it running.
+
+To switch back to the real Stream Deck plugin, type `q` in the Dev Host first,
+then start the Stream Deck app.
 
 ## 3. Create The Max For Live Device
 

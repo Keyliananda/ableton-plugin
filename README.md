@@ -10,6 +10,7 @@ sends dial deltas back to the Max for Live bridge.
 ```bash
 npm install
 npm run build
+npm run streamdeck:link
 npm test
 npm run typecheck
 ```
@@ -19,6 +20,13 @@ Run the local live-test host:
 ```bash
 npm run harness:dev-live-host
 ```
+
+The dev host and the real Stream Deck app both use `127.0.0.1:17375`; run only
+one of them at a time. Quit the dev host with `q` before testing the hardware
+plugin.
+
+`npm run streamdeck:link` links the local `.sdPlugin` folder into Stream Deck's
+plugin directory. Restart the Stream Deck app after rebuilding.
 
 On Windows machines where PowerShell blocks `npm.ps1`, run:
 

@@ -3,6 +3,7 @@ import { stdin as input, stdout as output } from "node:process";
 import { pathToFileURL } from "node:url";
 import type { FeedbackPayload, StreamDeckFeedbackAdapter } from "../streamdeck/feedback.js";
 import { StreamDeckPluginController } from "../streamdeck/plugin.js";
+import { describeStartupError } from "../streamdeck/startup-errors.js";
 
 const DEFAULT_PORT = 17375;
 const DIAL_CONTEXTS = ["dial-0", "dial-1", "dial-2", "dial-3"] as const;
@@ -25,6 +26,7 @@ export async function runDevLiveHost(options: DevLiveHostOptions = {}): Promise<
   controller.sendHello();
 
   console.log(`[dev-live-host] listening on ws://127.0.0.1:${controller.address.port}`);
+  console.log("[dev-live-host] do not run this together with the Stream Deck app; both use port 17375");
   console.log("[dev-live-host] commands: b0, b1, t, refresh, r <dial 0-3> <ticks> [fine], state, help, q");
 
   const close = async (): Promise<void> => {
@@ -145,6 +147,7 @@ function readNumberArg(argv: readonly string[], name: string): number | undefine
 
 if (process.argv[1] && import.meta.url === pathToFileURL(process.argv[1]).href) {
   runDevLiveHost(parseCliArgs(process.argv.slice(2))).catch((error: unknown) => {
+    console.error(describeStartupError(error));
     console.error(error);
     process.exitCode = 1;
   });

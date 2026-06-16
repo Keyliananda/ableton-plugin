@@ -31,6 +31,15 @@ Stream Deck plugin entry point:
 npm run build
 ```
 
+Link the local Stream Deck plugin folder into the Stream Deck app's plugin
+directory:
+
+```bash
+npm run streamdeck:link
+```
+
+Run this once per checkout, then restart the Stream Deck app after rebuilds.
+
 Run only the WebSocket roundtrip integration test:
 
 ```bash
@@ -44,6 +53,10 @@ Start a local Stream Deck plugin stand-in:
 ```bash
 npm run harness:dev-live-host
 ```
+
+Do not run the Dev Live Host at the same time as the Stream Deck app. Both try
+to listen on `127.0.0.1:17375`. If the host is running, quit it with `q` before
+starting or testing the real Stream Deck plugin.
 
 On Windows machines where PowerShell blocks `npm.ps1`, run the built host
 directly:
