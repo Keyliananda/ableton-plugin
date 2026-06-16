@@ -5,7 +5,26 @@ This is the first real Ableton smoke test. It uses:
 - `node .\dist\src\harness\dev-live-host.js` as the Stream Deck plugin stand-in.
 - a Max for Live Audio Effect with one `js` object and one `node.script` object.
 
-## 1. Start The Local Host
+## 1. Sync The Max Runtime Files
+
+Max loads the JavaScript files from a stable folder without spaces in the path:
+
+```text
+S:/AbletonRackBridge
+```
+
+After changing any file in `src/maxforlive`, sync the runtime copies before
+reloading the Max device:
+
+```powershell
+npm run maxforlive:sync
+```
+
+The sync copies the Max patch builder, `live-api-adapter.js`,
+`node-bridge-safe.js`, and `node-smoke.js`, then makes `node_modules` available
+in the Max runtime folder.
+
+## 2. Start The Local Host
 
 Open PowerShell in the repo and run:
 
@@ -22,7 +41,7 @@ npm run harness:dev-live-host
 
 Leave it running.
 
-## 2. Create The Max For Live Device
+## 3. Create The Max For Live Device
 
 In Ableton Live:
 
@@ -33,7 +52,7 @@ In Ableton Live:
 5. Add one object:
 
 ```text
-js "S:/Coding Stuff/ableton-plugin/src/maxforlive/build-bridge-patch.js"
+js S:/AbletonRackBridge/build-bridge-patch-v5.js
 ```
 
 The builder creates the rest of the patch automatically. It uses a manual
@@ -45,8 +64,8 @@ If you prefer to patch manually, add these objects:
 [loadbang]
 [message script start]
 [message bang]
-[js "S:/Coding Stuff/ableton-plugin/src/maxforlive/live-api-adapter.js"]
-[node.script "S:/Coding Stuff/ableton-plugin/src/maxforlive/node-bridge.cjs"]
+[js S:/AbletonRackBridge/live-api-adapter.js]
+[node.script S:/AbletonRackBridge/node-bridge-safe.js]
 ```
 
 Wire them like this:
@@ -76,7 +95,7 @@ Live without clicking the Max `bang` button.
 The plugin also requests a refresh automatically when the Max bridge connects,
 so the button is mainly a manual fallback after changing the selected Rack.
 
-## 3. Select A Rack
+## 4. Select A Rack
 
 In Ableton:
 
@@ -90,7 +109,7 @@ The PowerShell host should print feedback lines such as:
 [feedback:dial-0] on title="Macro 1" value="..."
 ```
 
-## 4. Simulate Stream Deck Dial Input
+## 5. Simulate Stream Deck Dial Input
 
 In the PowerShell host, type:
 

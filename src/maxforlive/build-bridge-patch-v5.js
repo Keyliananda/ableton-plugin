@@ -31,8 +31,8 @@ function build() {
   var refreshMsg = p.newdefault(330, 150, "message", "bang");
   var note = p.newdefault(330, 115, "comment", "Click bang once after selecting a Rack. No continuous metro.");
   var liveApi = p.newdefault(330, 210, "js", ROOT + "/live-api-adapter.js");
-  var node = p.newdefault(170, 270, "node.script", ROOT + "/node-bridge.cjs");
-  var print = p.newdefault(575, 330, "print", "ableton-rack-node");
+  var node = p.newdefault(170, 270, "node.script", ROOT + "/node-bridge-safe.js");
+  var print = p.newdefault(575, 330, "print", "ableton-rack-node-safe");
 
   ignore(title);
   ignore(note);
@@ -72,6 +72,7 @@ function cleanupOldBridgeBoxes(patcher) {
       text === "script start" ||
       text === "route plugin_message_uri" ||
       text === "print ableton-rack-node" ||
+      text === "print ableton-rack-node-safe" ||
       text === "Ableton Rack Bridge live-test patch" ||
       text.indexOf("Turn on to poll Ableton") !== -1 ||
       text.indexOf("wait for connected") !== -1 ||

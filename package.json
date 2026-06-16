@@ -6,6 +6,7 @@
   "scripts": {
     "test": "vitest run",
     "typecheck": "tsc --noEmit",
+    "maxforlive:sync": "node scripts/sync-maxforlive.mjs",
     "harness:dev-live-host": "node --experimental-strip-types src/harness/dev-live-host.ts",
     "harness:fake-ableton": "node --experimental-strip-types src/harness/fake-ableton-client.ts"
   },
