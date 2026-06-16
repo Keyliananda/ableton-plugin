@@ -4,7 +4,7 @@
     {
       "Controllers": ["Encoder"],
       "Encoder": {
-        "layout": "$B1",
+        "layout": "layouts/rack-dial.json",
         "TriggerDescription": {
           "Rotate": "Adjust selected Rack parameter",
           "Push": "Toggle this dial layer",

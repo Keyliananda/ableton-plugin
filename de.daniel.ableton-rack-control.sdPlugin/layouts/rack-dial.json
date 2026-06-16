@@ -1,0 +1,61 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/layout.json",
+  "id": "de.daniel.ableton-rack-control.rack-dial",
+  "items": [
+    {
+      "key": "title",
+      "type": "text",
+      "rect": [6, 0, 156, 30],
+      "alignment": "center",
+      "font": {
+        "size": 15,
+        "weight": 700
+      },
+      "text-overflow": "ellipsis"
+    },
+    {
+      "key": "layer",
+      "type": "text",
+      "rect": [164, 0, 30, 30],
+      "alignment": "right",
+      "color": "#FFFFFF",
+      "font": {
+        "size": 17,
+        "weight": 700
+      },
+      "value": "",
+      "enabled": false
+    },
+    {
+      "key": "icon",
+      "type": "pixmap",
+      "rect": [10, 34, 58, 58],
+      "value": "imgs/action.svg"
+    },
+    {
+      "key": "value",
+      "type": "text",
+      "rect": [74, 36, 112, 28],
+      "alignment": "center",
+      "font": {
+        "size": 18,
+        "weight": 700
+      },
+      "text-overflow": "ellipsis"
+    },
+    {
+      "key": "indicator",
+      "type": "bar",
+      "rect": [74, 72, 112, 12],
+      "value": 0,
+      "range": {
+        "min": 0,
+        "max": 100
+      },
+      "bar_bg_c": "#2C2C2C",
+      "bar_fill_c": "#35C9E8",
+      "bar_border_c": "#101010",
+      "border_w": 1
+    }
+  ]
+}

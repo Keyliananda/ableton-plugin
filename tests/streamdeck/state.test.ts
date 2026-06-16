@@ -121,6 +121,21 @@ describe("stream deck state", () => {
     });
   });
 
+  it("does not switch a dial to an unassigned second-layer slot", () => {
+    const state = applyBridgeMessage(
+      createDisconnectedState(),
+      deviceChanged([
+        param(0, { name: "Level" }),
+        param(3, { name: "Output" }),
+        param(4, { name: "Compression" }),
+        param(7, { name: "Macro 8" })
+      ])
+    );
+
+    expect(getVisibleSlots(toggleDialBank(state, 0)).map((slot) => slot.slot)).toEqual([4, 1, 2, 3]);
+    expect(getVisibleSlots(toggleDialBank(state, 3)).map((slot) => slot.slot)).toEqual([0, 1, 2, 3]);
+  });
+
   it("keeps dial banks when the same device refreshes", () => {
     const state = toggleDialBank(
       applyBridgeMessage(createDisconnectedState(), deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)))),

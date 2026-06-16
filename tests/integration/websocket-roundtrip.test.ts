@@ -182,12 +182,14 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     expect(feedback.latest("dial-0")).toEqual({
       title: "No Rack",
       value: "",
+      layer: { value: "", enabled: false },
       indicator: { value: 0 },
       isEnabled: false
     });
     expect(feedback.latest("dial-1")).toEqual({
       title: "",
       value: "",
+      layer: { value: "", enabled: false },
       indicator: { value: 0 },
       isEnabled: false
     });
@@ -219,7 +221,7 @@ describe("Stream Deck bridge websocket roundtrip", () => {
         params: Array.from({ length: 8 }, (_, slot) => ({
           slot,
           id: 9000 + slot,
-          name: `Macro ${slot + 1}`,
+          name: `Assigned ${slot + 1}`,
           value: 0.5,
           displayValue: "50%",
           min: 0,
@@ -294,6 +296,7 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     expect(feedback.latest("dial-0")).toEqual({
       title: "Offline",
       value: "Max",
+      layer: { value: "", enabled: false },
       indicator: { value: 0 },
       isEnabled: false
     });

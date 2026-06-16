@@ -48,7 +48,7 @@ describe("Stream Deck manifest", () => {
       Icon: "imgs/action",
       States: [{ Image: "imgs/action" }],
       Encoder: {
-        layout: "$B1",
+        layout: "layouts/rack-dial.json",
         TriggerDescription: {
           Rotate: "Adjust selected Rack parameter",
           Push: "Toggle this dial layer",
@@ -57,7 +57,10 @@ describe("Stream Deck manifest", () => {
       }
     });
     const codePath = join(process.cwd(), PLUGIN_UUID + ".sdPlugin", manifest.CodePath);
+    const layoutPath = join(process.cwd(), PLUGIN_UUID + ".sdPlugin", "layouts", "rack-dial.json");
     expect(existsSync(codePath)).toBe(true);
+    expect(existsSync(layoutPath)).toBe(true);
+    expect(readFileSync(layoutPath, "utf8")).toContain('"key": "layer"');
     expect(readFileSync(codePath, "utf8")).toContain("elgato-entry");
     expect(readFileSync(codePath, "utf8")).not.toContain("Placeholder");
   });

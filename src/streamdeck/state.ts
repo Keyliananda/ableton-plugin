@@ -95,6 +95,10 @@ export function toggleDialBank(state: StreamDeckState, dialIndex: number): Strea
     return state;
   }
 
+  if (!hasActiveAlternateSlot(state, dialIndex)) {
+    return state;
+  }
+
   const nextBanks: DialBanks = [...state.dialBanks] as DialBanks;
   nextBanks[dialIndex] = nextBanks[dialIndex] === 0 ? 1 : 0;
 
@@ -102,6 +106,25 @@ export function toggleDialBank(state: StreamDeckState, dialIndex: number): Strea
     ...state,
     dialBanks: nextBanks
   };
+}
+
+export function hasActiveAlternateSlot(state: StreamDeckState, dialIndex: number): boolean {
+  if (!Number.isInteger(dialIndex) || dialIndex < 0 || dialIndex > 3) {
+    return false;
+  }
+
+  const firstLayerSlot = buildBankView(state.params, 0)[dialIndex];
+  const secondLayerSlot = buildBankView(state.params, 1)[dialIndex];
+
+  return isAssignedLayerSlot(firstLayerSlot) && isAssignedLayerSlot(secondLayerSlot);
+}
+
+function isAssignedLayerSlot(slot: BankSlot | undefined): boolean {
+  return Boolean(slot?.isEnabled && slot.param && !isDefaultRackMacroName(slot.param.name, slot.param.slot));
+}
+
+function isDefaultRackMacroName(name: string, slot: number): boolean {
+  return name.trim() === `Macro ${slot + 1}`;
 }
 
 export function rotateDial(

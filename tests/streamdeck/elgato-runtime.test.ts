@@ -93,12 +93,14 @@ describe("Stream Deck Elgato runtime", () => {
     await adapter.setFeedback("ctx-0", {
       title: "Level",
       value: "65",
+      layer: { value: "↕", enabled: true },
       indicator: { value: 51 },
       isEnabled: true
     });
     await adapter.setFeedback("missing", {
       title: "Ignored",
       value: "0",
+      layer: { value: "", enabled: false },
       indicator: { value: 0 },
       isEnabled: false
     });
@@ -107,6 +109,7 @@ describe("Stream Deck Elgato runtime", () => {
       {
         title: "Level",
         value: "65",
+        layer: { value: "↕", enabled: true },
         indicator: 51
       }
     ]);

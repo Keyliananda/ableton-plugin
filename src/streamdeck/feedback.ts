@@ -1,8 +1,12 @@
-import { getVisibleSlots, type StreamDeckState } from "./state.js";
+import { getVisibleSlots, hasActiveAlternateSlot, type StreamDeckState } from "./state.js";
 
 export interface FeedbackPayload {
   title: string;
   value: string;
+  layer: {
+    value: string;
+    enabled: boolean;
+  };
   indicator: {
     value: number;
   };
@@ -37,7 +41,10 @@ export async function renderFeedback(
       }
 
       const slot = slots[dialIndex];
-      return adapter.setFeedback(context, slot?.isEnabled && slot.param ? mappedPayload(slot.param) : blankPayload());
+      return adapter.setFeedback(
+        context,
+        slot?.isEnabled && slot.param ? mappedPayload(slot.param, hasActiveAlternateSlot(state, dialIndex)) : blankPayload()
+      );
     })
   );
 }
@@ -47,10 +54,13 @@ export function mappedPayload(param: {
   name: string;
   displayValue: string;
   normalized: number;
-}): FeedbackPayload {
+}, hasAlternateAssignment = false): FeedbackPayload {
+  const layerPrefix = param.slot >= 4 ? "[2] " : "";
+
   return {
-    title: param.slot >= 4 ? `[2] ${param.name}` : param.name,
+    title: `${layerPrefix}${param.name}`,
     value: param.displayValue,
+    layer: layerPayload(hasAlternateAssignment),
     indicator: { value: Math.round(clamp01(param.normalized) * 100) },
     isEnabled: true
   };
@@ -60,6 +70,7 @@ export function blankPayload(): FeedbackPayload {
   return {
     title: "",
     value: "",
+    layer: layerPayload(false),
     indicator: { value: 0 },
     isEnabled: false
   };
@@ -69,8 +80,16 @@ function statusPayload(title: string, value: string): FeedbackPayload {
   return {
     title,
     value,
+    layer: layerPayload(false),
     indicator: { value: 0 },
     isEnabled: false
+  };
+}
+
+function layerPayload(enabled: boolean): FeedbackPayload["layer"] {
+  return {
+    value: enabled ? "↕" : "",
+    enabled
   };
 }
 

@@ -51,6 +51,7 @@ describe("renderFeedback", () => {
       payload: {
         title: "Cutoff",
         value: "1.24 kHz",
+        layer: { value: "", enabled: false },
         indicator: { value: 43 },
         isEnabled: true
       }
@@ -81,6 +82,38 @@ describe("renderFeedback", () => {
     await renderFeedback(adapter, state, ["dial-0"]);
 
     expect(adapter.payloads[0]?.payload.title).toBe("[2] Output");
+    expect(adapter.payloads[0]?.payload.layer).toEqual({ value: "↕", enabled: true });
+  });
+
+  it("marks only dials with an active second-layer assignment", async () => {
+    const adapter = new FakeFeedbackAdapter();
+    const state = applyBridgeMessage(createDisconnectedState(), {
+      type: "device.changed",
+      device: {
+        id: 12345,
+        name: "Performance Rack",
+        className: "AudioEffectGroupDevice",
+        isRack: true
+      },
+      bankCount: 2,
+      activeBank: 0,
+      params: [
+        param(0, { name: "Level" }),
+        param(3, { name: "Output" }),
+        param(4, { name: "Compression" }),
+        param(7, { name: "Macro 8" })
+      ]
+    });
+
+    await renderFeedback(adapter, state, ["dial-0", "dial-1", "dial-2", "dial-3"]);
+
+    expect(adapter.payloads.map(({ payload }) => payload.title)).toEqual(["Level", "", "", "Output"]);
+    expect(adapter.payloads.map(({ payload }) => payload.layer)).toEqual([
+      { value: "↕", enabled: true },
+      { value: "", enabled: false },
+      { value: "", enabled: false },
+      { value: "", enabled: false }
+    ]);
   });
 
   it("shows an offline status while the Max bridge is disconnected", async () => {
@@ -89,10 +122,10 @@ describe("renderFeedback", () => {
     await renderFeedback(adapter, createDisconnectedState(), ["dial-0", "dial-1", "dial-2", "dial-3"]);
 
     expect(adapter.payloads).toEqual([
-      { context: "dial-0", payload: { title: "Offline", value: "Max", indicator: { value: 0 }, isEnabled: false } },
-      { context: "dial-1", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
-      { context: "dial-2", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
-      { context: "dial-3", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } }
+      { context: "dial-0", payload: { title: "Offline", value: "Max", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-1", payload: { title: "", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-2", payload: { title: "", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-3", payload: { title: "", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } }
     ]);
   });
 
@@ -107,8 +140,8 @@ describe("renderFeedback", () => {
     await renderFeedback(adapter, state, ["dial-0", "dial-1"]);
 
     expect(adapter.payloads).toEqual([
-      { context: "dial-0", payload: { title: "No Rack", value: "", indicator: { value: 0 }, isEnabled: false } },
-      { context: "dial-1", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } }
+      { context: "dial-0", payload: { title: "No Rack", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-1", payload: { title: "", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } }
     ]);
   });
 
@@ -130,8 +163,8 @@ describe("renderFeedback", () => {
     await renderFeedback(adapter, state, ["dial-0", "dial-1"]);
 
     expect(adapter.payloads).toEqual([
-      { context: "dial-0", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } },
-      { context: "dial-1", payload: { title: "", value: "", indicator: { value: 0 }, isEnabled: false } }
+      { context: "dial-0", payload: { title: "", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } },
+      { context: "dial-1", payload: { title: "", value: "", layer: { value: "", enabled: false }, indicator: { value: 0 }, isEnabled: false } }
     ]);
   });
 });

@@ -147,6 +147,7 @@ function toElgatoFeedback(payload: FeedbackPayload): ElgatoFeedbackPayload {
   return {
     title: payload.title,
     value: payload.value,
+    layer: payload.layer,
     indicator: payload.indicator.value
   };
 }
