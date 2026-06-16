@@ -52,6 +52,7 @@ interactive commands:
 ```text
 b0
 b1
+refresh
 r <dial 0-3> <ticks> [fine]
 state
 q

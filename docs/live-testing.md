@@ -62,6 +62,20 @@ Click `script start`, select the Rack in Ableton, then click `bang` once to
 send the current mapping to the host. The bridge polls again after each
 successful dial write.
 
+After the bridge is connected, the dev host can also request that same selected
+Rack refresh from the console with:
+
+```text
+refresh
+```
+
+The real Stream Deck plugin also provides a **Refresh Rack** keypad action.
+Place it on a key and press it to request the selected Rack mapping from Max for
+Live without clicking the Max `bang` button.
+
+The plugin also requests a refresh automatically when the Max bridge connects,
+so the button is mainly a manual fallback after changing the selected Rack.
+
 ## 3. Select A Rack
 
 In Ableton:
@@ -82,6 +96,7 @@ In the PowerShell host, type:
 
 ```text
 state
+refresh
 r 0 1
 r 1 -2
 b1
@@ -90,6 +105,7 @@ r 0 3
 
 Expected result:
 
+- `refresh` asks Max for Live to resend the currently selected Rack mapping.
 - `r 0 1` changes the first visible Macro.
 - `b1` switches to Macros 5-8.
 - `r 0 3` changes Macro 5.

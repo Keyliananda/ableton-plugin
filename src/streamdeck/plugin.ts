@@ -102,6 +102,10 @@ export class StreamDeckPluginController {
     this.state = applyBridgeMessage(this.state, message);
     this.queueFeedbackRender();
     await this.renderQueue;
+
+    if (message.type === "bridge.hello") {
+      this.requestDeviceRefresh();
+    }
   }
 
   handleBridgeDisconnect(): void {
@@ -136,6 +140,10 @@ export class StreamDeckPluginController {
 
     this.server.send(delta);
     return true;
+  }
+
+  requestDeviceRefresh(): void {
+    this.server.send({ type: "device.refresh" });
   }
 
   sendHello(): void {

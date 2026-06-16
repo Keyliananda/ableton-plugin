@@ -177,4 +177,15 @@ describe("LiveBridgeController", () => {
 
     expect(adapter.writes).toEqual([]);
   });
+
+  it("refreshes the selected device when receiving device.refresh", async () => {
+    const messages: BridgeToPluginMessage[] = [];
+    const adapter = new FakeLiveAdapter(device([parameter(0)]));
+    const controller = new LiveBridgeController(adapter, (message) => messages.push(message));
+
+    await controller.handleMessage({ type: "device.refresh" });
+
+    expect(messages).toHaveLength(1);
+    expect(messages[0]).toMatchObject({ type: "device.changed", device: { id: 123 } });
+  });
 });

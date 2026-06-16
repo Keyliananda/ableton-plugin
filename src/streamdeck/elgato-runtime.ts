@@ -3,6 +3,7 @@ import {
   type DialDownEvent,
   type DialRotateEvent,
   type FeedbackPayload as ElgatoFeedbackPayload,
+  type KeyDownEvent,
   type WillAppearEvent,
   type WillDisappearEvent
 } from "@elgato/streamdeck";
@@ -13,6 +14,7 @@ import { StreamDeckSdkEventAdapter, type StreamDeckSdkController } from "./sdk-a
 
 export const PLUGIN_UUID = "de.daniel.ableton-rack-control";
 export const ACTION_UUID = `${PLUGIN_UUID}.dial`;
+export const REFRESH_ACTION_UUID = `${PLUGIN_UUID}.refresh`;
 
 export interface RuntimeStreamDeck {
   actions: {
@@ -29,6 +31,7 @@ interface RuntimeOptions {
 type RuntimeController = StreamDeckSdkController & {
   start(): Promise<void>;
   sendHello(): void;
+  requestDeviceRefresh(): void;
 };
 
 export interface FeedbackTarget {
@@ -111,6 +114,18 @@ export class RackDialAction extends SingletonAction {
   }
 }
 
+export class RefreshRackAction extends SingletonAction {
+  readonly manifestId = REFRESH_ACTION_UUID;
+
+  constructor(private readonly controller: { requestDeviceRefresh(): void }) {
+    super();
+  }
+
+  override onKeyDown(_ev: KeyDownEvent<JsonObject>): void {
+    this.controller.requestDeviceRefresh();
+  }
+}
+
 export async function startAbletonRackStreamDeckPlugin(options: RuntimeOptions): Promise<void> {
   const feedback = new StreamDeckActionFeedbackAdapter();
   const controller =
@@ -121,8 +136,10 @@ export async function startAbletonRackStreamDeckPlugin(options: RuntimeOptions):
     });
 
   options.streamDeck.actions.registerAction(new RackDialAction(controller, feedback));
+  options.streamDeck.actions.registerAction(new RefreshRackAction(controller));
   await controller.start();
   controller.sendHello();
+  controller.requestDeviceRefresh();
   await options.streamDeck.connect();
 }
 

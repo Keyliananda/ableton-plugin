@@ -84,6 +84,46 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     expect(controller.rotateDial(1, 2, false)).toBe(false);
   });
 
+  it("sends device.refresh to the bridge when refresh is requested", async () => {
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback: { setFeedback: () => undefined }
+    });
+    controllers.push(controller);
+
+    await controller.start();
+    const bridge = await connect(controller.address.port);
+    sockets.push(bridge);
+    const refresh = onceSocketMessage(bridge);
+
+    controller.requestDeviceRefresh();
+
+    await expect(refresh).resolves.toEqual({ type: "device.refresh" });
+  });
+
+  it("requests a device refresh when the bridge says hello", async () => {
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback: { setFeedback: () => undefined }
+    });
+    controllers.push(controller);
+
+    await controller.start();
+    const bridge = await connect(controller.address.port);
+    sockets.push(bridge);
+    const refresh = onceSocketMessage(bridge);
+
+    bridge.send(
+      JSON.stringify({
+        type: "bridge.hello",
+        protocolVersion: 1,
+        bridgeName: "Ableton Rack Bridge"
+      })
+    );
+
+    await expect(refresh).resolves.toEqual({ type: "device.refresh" });
+  });
+
   it("toggles only one dial bank at a time", async () => {
     const controller = new StreamDeckPluginController({
       server: { port: 0 },

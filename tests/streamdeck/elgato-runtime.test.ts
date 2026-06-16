@@ -2,6 +2,8 @@ import { describe, expect, it } from "vitest";
 import {
   ACTION_UUID,
   RackDialAction,
+  REFRESH_ACTION_UUID,
+  RefreshRackAction,
   StreamDeckActionFeedbackAdapter,
   startAbletonRackStreamDeckPlugin,
   type RuntimeStreamDeck
@@ -31,6 +33,7 @@ class FakeController {
   readonly unregistered: string[] = [];
   readonly rotations: Array<{ dialIndex: number; ticks: number; fine: boolean }> = [];
   readonly toggled: number[] = [];
+  refreshRequests = 0;
 
   async start(): Promise<void> {
     this.started = true;
@@ -57,14 +60,18 @@ class FakeController {
     this.toggled.push(dialIndex);
     return 1;
   }
+
+  requestDeviceRefresh(): void {
+    this.refreshRequests += 1;
+  }
 }
 
 class FakeStreamDeck implements RuntimeStreamDeck {
   connected = false;
-  action: unknown = null;
+  readonly actionConstructors: Array<new (...args: never[]) => unknown> = [];
   readonly actions = {
     registerAction: (action: unknown): void => {
-      this.action = action;
+      this.actionConstructors.push(action?.constructor as new (...args: never[]) => unknown);
     }
   };
 
@@ -139,6 +146,16 @@ describe("Stream Deck Elgato runtime", () => {
     expect(controller.unregistered).toEqual(["ctx-2"]);
   });
 
+  it("requests a selected Rack refresh from the refresh key action", async () => {
+    const controller = new FakeController();
+    const action = new RefreshRackAction(controller);
+
+    await action.onKeyDown?.({} as never);
+
+    expect(action.manifestId).toBe(REFRESH_ACTION_UUID);
+    expect(controller.refreshRequests).toBe(1);
+  });
+
   it("starts the bridge controller before connecting to Stream Deck", async () => {
     const controller = new FakeController();
     const streamDeck = new FakeStreamDeck();
@@ -147,7 +164,8 @@ describe("Stream Deck Elgato runtime", () => {
 
     expect(controller.started).toBe(true);
     expect(controller.helloSent).toBe(true);
-    expect(streamDeck.action).toBeInstanceOf(RackDialAction);
+    expect(controller.refreshRequests).toBe(1);
+    expect(streamDeck.actionConstructors).toEqual([RackDialAction, RefreshRackAction]);
     expect(streamDeck.connected).toBe(true);
   });
 });

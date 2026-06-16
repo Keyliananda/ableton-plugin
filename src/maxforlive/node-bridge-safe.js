@@ -3,6 +3,11 @@ const WebSocket = require("ws");
 
 const DEFAULT_URL = "ws://127.0.0.1:17375";
 const RECONNECT_DELAY_MS = 5000;
+const BRIDGE_HELLO = {
+  type: "bridge.hello",
+  protocolVersion: 1,
+  bridgeName: "Ableton Rack Bridge"
+};
 
 let url = DEFAULT_URL;
 let socket = null;
@@ -24,6 +29,9 @@ function connect() {
   socket.on("open", () => {
     lastError = "";
     log(`connected to ${url}`);
+    socket.send(JSON.stringify(BRIDGE_HELLO));
+    log("sent bridge.hello");
+    maxApi.outlet("bridge_connected");
   });
 
   socket.on("message", (data) => {
@@ -35,6 +43,7 @@ function connect() {
       return;
     }
 
+    log(`received from plugin: ${text}`);
     maxApi.outlet("plugin_message_uri", encodeURIComponent(text));
   });
 

@@ -6,9 +6,8 @@
       "Encoder": {
         "layout": "$B1",
         "TriggerDescription": {
-          "Push": "Fine adjustment while rotating",
           "Rotate": "Adjust selected Rack parameter",
-          "Touch": "Refresh selected Rack"
+          "Push": "Toggle this dial layer"
         }
       },
       "Icon": "imgs/action",
@@ -19,6 +18,18 @@
         }
       ],
       "UUID": "de.daniel.ableton-rack-control.dial"
+    },
+    {
+      "Controllers": ["Keypad"],
+      "Icon": "imgs/action",
+      "Name": "Refresh Rack",
+      "States": [
+        {
+          "Image": "imgs/action"
+        }
+      ],
+      "Tooltip": "Refresh selected Ableton Rack",
+      "UUID": "de.daniel.ableton-rack-control.refresh"
     }
   ],
   "Author": "Daniel",

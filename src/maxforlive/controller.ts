@@ -56,6 +56,11 @@ export class LiveBridgeController {
   }
 
   async handleMessage(message: PluginToBridgeMessage): Promise<void> {
+    if (message.type === "device.refresh") {
+      await this.refreshSelectedDevice();
+      return;
+    }
+
     if (message.type === "bank.set") {
       this.activeBank = message.bank;
       return;

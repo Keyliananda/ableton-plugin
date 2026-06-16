@@ -105,6 +105,7 @@ describe("protocol message guards", () => {
     ).toBe(true);
 
     expect(isPluginToBridgeMessage({ type: "bank.set", bank: 1 })).toBe(true);
+    expect(isPluginToBridgeMessage({ type: "device.refresh" })).toBe(true);
 
     expect(
       isPluginToBridgeMessage({

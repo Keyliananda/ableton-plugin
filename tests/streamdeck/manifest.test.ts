@@ -40,7 +40,7 @@ describe("Stream Deck manifest", () => {
     expect(manifest.Nodejs?.Version).toBe("24");
     expect(manifest.Software?.MinimumVersion).toBe("7.1");
 
-    expect(manifest.Actions).toHaveLength(1);
+    expect(manifest.Actions).toHaveLength(2);
     expect(manifest.Actions[0]).toMatchObject({
       UUID: `${PLUGIN_UUID}.dial`,
       Name: "Rack Dial",
@@ -51,10 +51,16 @@ describe("Stream Deck manifest", () => {
         layout: "$B1",
         TriggerDescription: {
           Rotate: "Adjust selected Rack parameter",
-          Push: "Fine adjustment while rotating",
-          Touch: "Refresh selected Rack"
+          Push: "Toggle this dial layer"
         }
       }
+    });
+    expect(manifest.Actions[1]).toMatchObject({
+      UUID: `${PLUGIN_UUID}.refresh`,
+      Name: "Refresh Rack",
+      Controllers: ["Keypad"],
+      Icon: "imgs/action",
+      States: [{ Image: "imgs/action" }]
     });
 
     const codePath = join(process.cwd(), PLUGIN_UUID + ".sdPlugin", manifest.CodePath);

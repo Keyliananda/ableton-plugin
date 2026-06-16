@@ -11,15 +11,21 @@ var COARSE_CONTINUOUS_DIVISOR = 128;
 var FINE_CONTINUOUS_DIVISOR = 1024;
 
 function loadbang() {
-  bridge_hello();
+  post("[ableton-rack-liveapi] loaded\n");
 }
 
 function bridge_hello() {
+  post("[ableton-rack-liveapi] sending bridge.hello\n");
   sendBridgeMessage({
     type: "bridge.hello",
     protocolVersion: PROTOCOL_VERSION,
     bridgeName: "Ableton Rack Bridge"
   });
+}
+
+function bridge_connected() {
+  post("[ableton-rack-liveapi] node bridge connected\n");
+  bridge_hello();
 }
 
 function bang() {
@@ -35,6 +41,7 @@ function poll(force) {
     if (!deviceId) {
       selectedDeviceId = 0;
       selectedParams = [];
+      post("[ableton-rack-liveapi] no selected device\n");
       sendBridgeMessage({ type: "device.cleared", reason: "no-selected-device" });
       lastSnapshotJson = "";
       return;
@@ -59,6 +66,7 @@ function poll(force) {
     selectedParams = params;
 
     if (force || snapshotJson !== lastSnapshotJson) {
+      post("[ableton-rack-liveapi] sending device.changed id=" + deviceId + " params=" + params.length + "\n");
       sendBridgeMessage(snapshot);
       lastSnapshotJson = snapshotJson;
     }
@@ -77,6 +85,12 @@ function plugin_message_uri(encoded) {
 }
 
 function handlePluginMessage(message) {
+  if (message.type === "device.refresh") {
+    post("[ableton-rack-liveapi] received device.refresh\n");
+    poll(true);
+    return;
+  }
+
   if (message.type === "bank.set") {
     activeBank = message.bank === 1 ? 1 : 0;
     poll();
