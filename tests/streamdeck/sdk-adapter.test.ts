@@ -6,6 +6,7 @@ class FakeController implements StreamDeckSdkController {
   readonly unregistered: string[] = [];
   readonly rotations: Array<{ dialIndex: number; ticks: number; fine: boolean }> = [];
   readonly toggled: number[] = [];
+  deviceToggleRequests = 0;
 
   registerDialContext(dialIndex: number, context: string): void {
     this.registered.push({ dialIndex, context });
@@ -23,6 +24,11 @@ class FakeController implements StreamDeckSdkController {
   toggleDialBank(dialIndex: number): 0 | 1 {
     this.toggled.push(dialIndex);
     return 1;
+  }
+
+  toggleSelectedDevice(): boolean {
+    this.deviceToggleRequests += 1;
+    return true;
   }
 }
 
@@ -79,6 +85,26 @@ describe("StreamDeckSdkEventAdapter", () => {
 
     expect(handled).toBe(true);
     expect(controller.toggled).toEqual([0]);
+  });
+
+  it("toggles the selected device when the encoder touchscreen is tapped", () => {
+    const controller = new FakeController();
+    const adapter = new StreamDeckSdkEventAdapter(controller);
+
+    const handled = adapter.handleEvent({
+      event: "touchTap",
+      context: "ctx-0",
+      payload: {
+        controller: "Encoder",
+        coordinates: { column: 0, row: 0 },
+        hold: false,
+        tapPos: [42, 12]
+      }
+    });
+
+    expect(handled).toBe(true);
+    expect(controller.deviceToggleRequests).toBe(1);
+    expect(controller.toggled).toEqual([]);
   });
 
   it("ignores non-encoder and out-of-range dial events", () => {

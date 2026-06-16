@@ -127,6 +127,26 @@ describe("LiveBridgeController", () => {
     ]);
   });
 
+  it("keeps Device On out of dial parameters and maps Macro 1 to slot 0", async () => {
+    const messages: BridgeToPluginMessage[] = [];
+    const adapter = new FakeLiveAdapter(
+      device([
+        parameter(0, { name: "Device On", value: 1, min: 0, max: 1, isQuantized: true }),
+        parameter(1, { name: "Macro 1", value: 64, min: 0, max: 127 }),
+        parameter(2, { name: "Macro 2", value: 32, min: 0, max: 127 })
+      ])
+    );
+    const controller = new LiveBridgeController(adapter, (message) => messages.push(message));
+
+    await controller.refreshSelectedDevice();
+
+    const params = messages[0].type === "device.changed" ? messages[0].params : [];
+    expect(params.map((param) => ({ slot: param.slot, id: param.id, name: param.name }))).toEqual([
+      { slot: 0, id: 9001, name: "Macro 1" },
+      { slot: 1, id: 9002, name: "Macro 2" }
+    ]);
+  });
+
   it("uses a responsive continuous step size for coarse dial rotation", async () => {
     const adapter = new FakeLiveAdapter(device([parameter(0, { value: 64, min: 0, max: 128 })]));
     const controller = new LiveBridgeController(adapter, () => undefined);
@@ -203,6 +223,23 @@ describe("LiveBridgeController", () => {
       { deviceId: 123, paramId: 9000, value: 0 },
       { deviceId: 123, paramId: 9000, value: 1 }
     ]);
+  });
+
+  it("still toggles Device On after filtering it from the dial parameters", async () => {
+    const adapter = new FakeLiveAdapter(
+      device([
+        parameter(0, { name: "Device On", value: 1, min: 0, max: 1, isQuantized: true }),
+        parameter(1, { name: "Macro 1", value: 64, min: 0, max: 128 })
+      ])
+    );
+    const controller = new LiveBridgeController(adapter, () => undefined);
+    await controller.refreshSelectedDevice();
+
+    await controller.handleMessage({ type: "device.toggle", deviceId: 123 });
+
+    expect(adapter.writes).toEqual([{ deviceId: 123, paramId: 9000, value: 0 }]);
+    await controller.handleMessage(delta({ paramId: 9001, slot: 0, ticks: 1 }));
+    expect(adapter.writes.at(-1)).toEqual({ deviceId: 123, paramId: 9001, value: 65 });
   });
 
   it("ignores device.toggle for stale devices or missing Device On parameters", async () => {

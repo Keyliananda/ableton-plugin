@@ -51,7 +51,8 @@ describe("Stream Deck manifest", () => {
         layout: "$B1",
         TriggerDescription: {
           Rotate: "Adjust selected Rack parameter",
-          Push: "Toggle this dial layer"
+          Push: "Toggle this dial layer",
+          Touch: "Toggle selected Rack on/off"
         }
       }
     });

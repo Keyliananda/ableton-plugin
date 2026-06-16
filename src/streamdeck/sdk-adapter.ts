@@ -3,6 +3,7 @@ export interface StreamDeckSdkController {
   unregisterDialContext(context: string): void;
   rotateDial(dialIndex: number, ticks: number, fine: boolean): boolean;
   toggleDialBank(dialIndex: number): 0 | 1;
+  toggleSelectedDevice(): boolean;
 }
 
 export type StreamDeckSdkEvent =
@@ -27,6 +28,14 @@ export type StreamDeckSdkEvent =
       event: "dialDown";
       context: string;
       payload: EncoderPayload;
+    }
+  | {
+      event: "touchTap";
+      context: string;
+      payload: EncoderPayload & {
+        hold: boolean;
+        tapPos: [x: number, y: number];
+      };
     };
 
 interface Coordinates {
@@ -58,6 +67,8 @@ export class StreamDeckSdkEventAdapter {
         return this.handleDialRotate(event);
       case "dialDown":
         return this.handleDialDown(event);
+      case "touchTap":
+        return this.handleTouchTap(event);
     }
   }
 
@@ -92,6 +103,15 @@ export class StreamDeckSdkEventAdapter {
 
     this.controller.toggleDialBank(dialIndex);
     return true;
+  }
+
+  private handleTouchTap(event: Extract<StreamDeckSdkEvent, { event: "touchTap" }>): boolean {
+    const dialIndex = dialIndexFromColumn(event.payload.coordinates.column);
+    if (dialIndex === null) {
+      return false;
+    }
+
+    return this.controller.toggleSelectedDevice();
   }
 }
 

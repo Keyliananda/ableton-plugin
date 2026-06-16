@@ -66,6 +66,13 @@ state
 q
 ```
 
+The real Stream Deck + action maps touchscreen taps to the same selected Rack
+toggle as the dev host's `t` command. Encoder presses still toggle only that
+dial's Macro layer.
+
+Rack `Device On` is filtered out of the dial parameter list, so dial 1 controls
+Macro 1 instead of the Rack on/off switch.
+
 This is the fastest manual bridge check before packaging a real Stream Deck
 plugin or Max for Live device.
 

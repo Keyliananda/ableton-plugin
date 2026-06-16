@@ -98,6 +98,14 @@ The real Stream Deck plugin does not need a visible refresh key. It requests a
 refresh automatically when the Max bridge connects, and the Max device refreshes
 the mapping automatically when the selected Ableton device changes.
 
+On Stream Deck + hardware, tapping the encoder touchscreen toggles the selected
+Rack's `Device On` parameter. Pressing an encoder still only toggles that dial's
+Macro layer.
+
+The dials skip Ableton's `Device On` parameter and start at the Rack macros:
+Macro 1 appears on dial 1, Macro 2 on dial 2, and so on. `Device On` remains
+available only for touch-toggle and the dev host's `t` command.
+
 ## 4. Select A Rack
 
 In Ableton:

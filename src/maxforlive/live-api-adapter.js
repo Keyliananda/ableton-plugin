@@ -7,6 +7,7 @@ var activeBank = 0;
 var lastSnapshotJson = "";
 var selectedDeviceId = 0;
 var selectedParams = [];
+var selectedDeviceOnParam = null;
 var COARSE_CONTINUOUS_DIVISOR = 128;
 var FINE_CONTINUOUS_DIVISOR = 1024;
 var DEBUG = false;
@@ -108,13 +109,16 @@ function poll(force) {
     if (!deviceId) {
       selectedDeviceId = 0;
       selectedParams = [];
+      selectedDeviceOnParam = null;
       post("[ableton-rack-liveapi] no selected device\n");
       sendBridgeMessage({ type: "device.cleared", reason: "no-selected-device" });
       lastSnapshotJson = "";
       return;
     }
 
-    var params = readParams(device).slice(0, 8);
+    var allParams = readParams(device);
+    selectedDeviceOnParam = findDeviceOnParam(allParams);
+    var params = filterDialParams(allParams).slice(0, 8);
     var snapshot = {
       type: "device.changed",
       device: {
@@ -203,7 +207,7 @@ function applyDeviceToggle(message) {
     return;
   }
 
-  var param = findDeviceOnParam();
+  var param = selectedDeviceOnParam;
   if (!param || !param.isEnabled) {
     return;
   }
@@ -213,14 +217,27 @@ function applyDeviceToggle(message) {
   writeParamValue(param, nextValue);
 }
 
-function findDeviceOnParam() {
-  for (var i = 0; i < selectedParams.length; i += 1) {
-    if (selectedParams[i].name === "Device On") {
-      return selectedParams[i];
+function findDeviceOnParam(params) {
+  for (var i = 0; i < params.length; i += 1) {
+    if (params[i].name === "Device On") {
+      return params[i];
     }
   }
 
   return null;
+}
+
+function filterDialParams(params) {
+  var result = [];
+
+  for (var i = 0; i < params.length; i += 1) {
+    if (params[i].name !== "Device On") {
+      params[i].slot = result.length;
+      result.push(params[i]);
+    }
+  }
+
+  return result;
 }
 
 function writeParamValue(param, nextValue) {

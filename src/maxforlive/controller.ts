@@ -9,6 +9,7 @@ const FINE_CONTINUOUS_DIVISOR = 1024;
 export class LiveBridgeController {
   private activeBank: 0 | 1 = 0;
   private selectedDevice: LiveDeviceSnapshot | null = null;
+  private deviceOnParam: RackParam | null = null;
   private params: RackParam[] = [];
 
   constructor(
@@ -22,24 +23,17 @@ export class LiveBridgeController {
 
     if (device === null) {
       this.params = [];
+      this.deviceOnParam = null;
       this.send({ type: "device.cleared", reason: "no-selected-device" });
       return;
     }
 
-    this.params = device.params.slice(0, 8).map((param, slot) =>
-      normalizeParam({
-        slot,
-        id: param.id,
-        name: param.name,
-        value: param.value,
-        displayValue: param.displayValue,
-        min: param.min,
-        max: param.max,
-        isQuantized: param.isQuantized,
-        isEnabled: param.isEnabled,
-        valueItems: param.valueItems
-      })
-    );
+    const normalizedParams = device.params.map((param, slot) => normalizeLiveParam(param, slot));
+    this.deviceOnParam = normalizedParams.find(isDeviceOnParam) ?? null;
+    this.params = normalizedParams.filter((param) => !isDeviceOnParam(param)).slice(0, 8).map((param, slot) => ({
+      ...param,
+      slot
+    }));
 
     this.send({
       type: "device.changed",
@@ -100,8 +94,8 @@ export class LiveBridgeController {
       return;
     }
 
-    const param = this.params.find((candidate) => candidate.name === "Device On");
-    if (param === undefined || !param.isEnabled) {
+    const param = this.deviceOnParam;
+    if (param === null || !param.isEnabled) {
       return;
     }
 
@@ -111,6 +105,25 @@ export class LiveBridgeController {
     param.value = nextValue;
     param.normalized = normalizeParam({ ...param, value: nextValue }).normalized;
   }
+}
+
+function normalizeLiveParam(param: LiveDeviceSnapshot["params"][number], slot: number): RackParam {
+  return normalizeParam({
+    slot,
+    id: param.id,
+    name: param.name,
+    value: param.value,
+    displayValue: param.displayValue,
+    min: param.min,
+    max: param.max,
+    isQuantized: param.isQuantized,
+    isEnabled: param.isEnabled,
+    valueItems: param.valueItems
+  });
+}
+
+function isDeviceOnParam(param: RackParam): boolean {
+  return param.name === "Device On";
 }
 
 function applyContinuousDelta(param: RackParam, ticks: number, fine: boolean): number {

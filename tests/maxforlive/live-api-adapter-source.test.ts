@@ -59,7 +59,16 @@ describe("live-api-adapter.js", () => {
 
     expect(source).toContain('message.type === "device.toggle"');
     expect(source).toContain("function applyDeviceToggle(message)");
-    expect(source).toContain("findDeviceOnParam()");
+    expect(source).toContain("var param = selectedDeviceOnParam");
     expect(source).toContain("writeParamValue(param, nextValue)");
+  });
+
+  it("filters Device On from dial params while keeping it available for device.toggle", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var selectedDeviceOnParam = null");
+    expect(source).toContain("selectedDeviceOnParam = findDeviceOnParam(allParams)");
+    expect(source).toContain("filterDialParams(allParams).slice(0, 8)");
+    expect(source).toContain("function filterDialParams(params)");
   });
 });

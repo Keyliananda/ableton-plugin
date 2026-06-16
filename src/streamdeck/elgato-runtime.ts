@@ -3,6 +3,7 @@ import {
   type DialDownEvent,
   type DialRotateEvent,
   type FeedbackPayload as ElgatoFeedbackPayload,
+  type TouchTapEvent,
   type WillAppearEvent,
   type WillDisappearEvent
 } from "@elgato/streamdeck";
@@ -30,6 +31,7 @@ type RuntimeController = StreamDeckSdkController & {
   start(): Promise<void>;
   sendHello(): void;
   requestDeviceRefresh(): void;
+  toggleSelectedDevice(): boolean;
 };
 
 export interface FeedbackTarget {
@@ -107,6 +109,19 @@ export class RackDialAction extends SingletonAction {
       payload: {
         controller: ev.payload.controller,
         coordinates: ev.payload.coordinates
+      }
+    });
+  }
+
+  override onTouchTap(ev: TouchTapEvent<JsonObject>): void {
+    this.sdkEvents.handleEvent({
+      event: "touchTap",
+      context: ev.action.id,
+      payload: {
+        controller: ev.payload.controller,
+        coordinates: ev.payload.coordinates,
+        hold: ev.payload.hold,
+        tapPos: ev.payload.tapPos
       }
     });
   }

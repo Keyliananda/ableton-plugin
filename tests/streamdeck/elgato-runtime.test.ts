@@ -31,6 +31,7 @@ class FakeController {
   readonly unregistered: string[] = [];
   readonly rotations: Array<{ dialIndex: number; ticks: number; fine: boolean }> = [];
   readonly toggled: number[] = [];
+  deviceToggleRequests = 0;
   refreshRequests = 0;
 
   async start(): Promise<void> {
@@ -57,6 +58,11 @@ class FakeController {
   toggleDialBank(dialIndex: number): 0 | 1 {
     this.toggled.push(dialIndex);
     return 1;
+  }
+
+  toggleSelectedDevice(): boolean {
+    this.deviceToggleRequests += 1;
+    return true;
   }
 
   requestDeviceRefresh(): void {
@@ -135,12 +141,22 @@ describe("Stream Deck Elgato runtime", () => {
         coordinates: { column: 2, row: 0 }
       }
     } as never);
+    await action.onTouchTap?.({
+      action: dialAction,
+      payload: {
+        controller: "Encoder",
+        coordinates: { column: 2, row: 0 },
+        hold: false,
+        tapPos: [12, 8]
+      }
+    } as never);
     await action.onWillDisappear?.({ action: dialAction } as never);
 
     expect(action.manifestId).toBe(ACTION_UUID);
     expect(controller.registered).toEqual([{ dialIndex: 2, context: "ctx-2" }]);
     expect(controller.rotations).toEqual([{ dialIndex: 2, ticks: 4, fine: false }]);
     expect(controller.toggled).toEqual([2]);
+    expect(controller.deviceToggleRequests).toBe(1);
     expect(controller.unregistered).toEqual(["ctx-2"]);
   });
 
