@@ -95,8 +95,12 @@ function rotateFromArgs(controller: StreamDeckPluginController, args: string[]):
     return;
   }
 
-  controller.rotateDial(dialIndex, ticks, fine);
-  console.log(`[dev-live-host] rotated dial ${dialIndex} by ${ticks}${fine ? " fine" : ""}`);
+  if (controller.rotateDial(dialIndex, ticks, fine)) {
+    console.log(`[dev-live-host] rotated dial ${dialIndex} by ${ticks}${fine ? " fine" : ""}`);
+    return;
+  }
+
+  console.log(`[dev-live-host] dial ${dialIndex} has no mapped parameter; use state to inspect current mapping`);
 }
 
 class ConsoleFeedbackAdapter implements StreamDeckFeedbackAdapter {

@@ -3,6 +3,9 @@ import type { LiveAdapter, LiveDeviceSnapshot } from "./live-adapter.js";
 
 type SendBridgeMessage = (message: BridgeToPluginMessage) => void;
 
+const COARSE_CONTINUOUS_DIVISOR = 128;
+const FINE_CONTINUOUS_DIVISOR = 1024;
+
 export class LiveBridgeController {
   private activeBank: 0 | 1 = 0;
   private selectedDevice: LiveDeviceSnapshot | null = null;
@@ -85,7 +88,7 @@ export class LiveBridgeController {
 
 function applyContinuousDelta(param: RackParam, ticks: number, fine: boolean): number {
   const span = param.max - param.min;
-  const divisor = fine ? 1024 : 256;
+  const divisor = fine ? FINE_CONTINUOUS_DIVISOR : COARSE_CONTINUOUS_DIVISOR;
   return clamp(param.value + ticks * (span / divisor), param.min, param.max);
 }
 

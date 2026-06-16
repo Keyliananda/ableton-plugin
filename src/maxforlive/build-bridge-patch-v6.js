@@ -26,11 +26,9 @@ function build() {
   var startMsg = p.newdefault(170, 115, "message");
   startMsg.message("set", "script start");
   var node = p.newdefault(170, 165, "node.script", "node-bridge.cjs");
-  var route = p.newdefault(170, 230, "route", "plugin_message_uri");
-  var toggle = p.newdefault(390, 115, "toggle");
-  var metro = p.newdefault(390, 165, "metro", 250);
+  var refreshMsg = p.newdefault(390, 165, "message", "bang");
   var liveApi = p.newdefault(390, 230, "js", "live-api-adapter.js");
-  var note = p.newdefault(390, 75, "comment", "Click script start, wait for connected, then turn on toggle.");
+  var note = p.newdefault(390, 75, "comment", "Click script start, select a Rack, then click bang. No metro.");
   var print = p.newdefault(170, 295, "print", "ableton-rack-node");
 
   ignore(title);
@@ -39,14 +37,12 @@ function build() {
   safeConnect(p, plugin, 0, plugout, 0);
   safeConnect(p, plugin, 1, plugout, 1);
   safeConnect(p, startMsg, 0, node, 0);
-  safeConnect(p, node, 0, route, 0);
-  safeConnect(p, route, 0, liveApi, 0);
+  safeConnect(p, node, 0, liveApi, 0);
   safeConnect(p, node, 1, print, 0);
-  safeConnect(p, toggle, 0, metro, 0);
-  safeConnect(p, metro, 0, liveApi, 0);
+  safeConnect(p, refreshMsg, 0, liveApi, 0);
   safeConnect(p, liveApi, 0, node, 0);
 
-  post("[ableton-rack-builder-v6] clean patch created. Click script start, then toggle.\n");
+  post("[ableton-rack-builder-v6] clean patch created. Click script start, select a Rack, then click bang.\n");
 }
 
 function clearEverythingExceptAudioAndSelf(patcher) {

@@ -13,6 +13,7 @@ import {
   getVisibleSlots,
   rotateDial as buildDialDelta,
   setActiveBank as applyActiveBank,
+  toggleDialBank as applyDialBankToggle,
   type StreamDeckState
 } from "./state.js";
 import {
@@ -100,13 +101,27 @@ export class StreamDeckPluginController {
     this.queueFeedbackRender();
   }
 
-  rotateDial(dialIndex: number, ticks: number, fine = false): void {
+  toggleBank(): 0 | 1 {
+    const nextBank = this.state.activeBank === 0 ? 1 : 0;
+    this.setBank(nextBank);
+    return this.state.activeBank;
+  }
+
+  toggleDialBank(dialIndex: number): 0 | 1 {
+    this.state = applyDialBankToggle(this.state, dialIndex);
+    this.queueFeedbackRender();
+
+    return isDialIndex(dialIndex) ? this.state.dialBanks[dialIndex] : this.state.activeBank;
+  }
+
+  rotateDial(dialIndex: number, ticks: number, fine = false): boolean {
     const delta = buildDialDelta(this.state, dialIndex, ticks, fine);
     if (delta === null) {
-      return;
+      return false;
     }
 
     this.server.send(delta);
+    return true;
   }
 
   sendHello(): void {

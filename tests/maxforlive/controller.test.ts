@@ -127,6 +127,16 @@ describe("LiveBridgeController", () => {
     ]);
   });
 
+  it("uses a responsive continuous step size for coarse dial rotation", async () => {
+    const adapter = new FakeLiveAdapter(device([parameter(0, { value: 64, min: 0, max: 128 })]));
+    const controller = new LiveBridgeController(adapter, () => undefined);
+    await controller.refreshSelectedDevice();
+
+    await controller.handleMessage(delta({ ticks: 1 }));
+
+    expect(adapter.writes).toEqual([{ deviceId: 123, paramId: 9000, value: 65 }]);
+  });
+
   it("applies quantized param.delta by valueItems index", async () => {
     const adapter = new FakeLiveAdapter(
       device([

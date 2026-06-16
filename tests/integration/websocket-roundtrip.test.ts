@@ -41,7 +41,7 @@ describe("Stream Deck bridge websocket roundtrip", () => {
           isRack: true
         },
         bankCount: 2,
-        activeBank: 1,
+        activeBank: 0,
         params: Array.from({ length: 8 }, (_, slot) => ({
           slot,
           id: 9000 + slot,
@@ -64,11 +64,74 @@ describe("Stream Deck bridge websocket roundtrip", () => {
     await expect(delta).resolves.toEqual({
       type: "param.delta",
       deviceId: 12345,
-      paramId: 9005,
-      slot: 5,
+      paramId: 9001,
+      slot: 1,
       ticks: 2,
       fine: false
     });
+  });
+
+  it("reports when a dial rotation cannot target a mapped parameter", async () => {
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback: { setFeedback: () => undefined }
+    });
+    controllers.push(controller);
+
+    await controller.start();
+
+    expect(controller.rotateDial(1, 2, false)).toBe(false);
+  });
+
+  it("toggles only one dial bank at a time", async () => {
+    const controller = new StreamDeckPluginController({
+      server: { port: 0 },
+      feedback: { setFeedback: () => undefined }
+    });
+    controllers.push(controller);
+
+    await controller.start();
+
+    const bridge = await connect(controller.address.port);
+    sockets.push(bridge);
+
+    bridge.send(
+      JSON.stringify({
+        type: "device.changed",
+        device: {
+          id: 12345,
+          name: "Performance Rack",
+          className: "AudioEffectGroupDevice",
+          isRack: true
+        },
+        bankCount: 2,
+        activeBank: 0,
+        params: Array.from({ length: 8 }, (_, slot) => ({
+          slot,
+          id: 9000 + slot,
+          name: `Macro ${slot + 1}`,
+          value: 0.5,
+          displayValue: "50%",
+          min: 0,
+          max: 1,
+          normalized: 0.5,
+          isQuantized: false,
+          isEnabled: true,
+          valueItems: []
+        }))
+      })
+    );
+    await waitFor(() => controller.getState().device?.id === 12345);
+
+    controller.toggleDialBank(1);
+
+    const secondDialDelta = onceSocketMessage(bridge);
+    controller.rotateDial(1, 2, false);
+    await expect(secondDialDelta).resolves.toMatchObject({ paramId: 9005, slot: 5 });
+
+    const firstDialDelta = onceSocketMessage(bridge);
+    controller.rotateDial(0, 2, false);
+    await expect(firstDialDelta).resolves.toMatchObject({ paramId: 9000, slot: 0 });
   });
 });
 

@@ -65,7 +65,7 @@
           "numinlets": 1,
           "numoutlets": 0,
           "patching_rect": [165.0, 54.0, 455.0, 20.0],
-          "text": "Ableton Rack Bridge: polls selected device and talks to the local Stream Deck test host."
+          "text": "Ableton Rack Bridge: click bang to refresh the selected device, then test dials from the host."
         }
       },
       {
@@ -92,33 +92,23 @@
       },
       {
         "box": {
-          "id": "obj-toggle",
-          "maxclass": "toggle",
-          "numinlets": 1,
-          "numoutlets": 1,
-          "outlettype": ["int"],
-          "patching_rect": [330.0, 103.0, 24.0, 24.0]
-        }
-      },
-      {
-        "box": {
-          "id": "comment-toggle",
+          "id": "comment-refresh",
           "maxclass": "comment",
           "numinlets": 1,
           "numoutlets": 0,
-          "patching_rect": [365.0, 105.0, 190.0, 20.0],
-          "text": "Turn on to poll Ableton every 250 ms."
+          "patching_rect": [330.0, 115.0, 300.0, 20.0],
+          "text": "Select a Rack in Ableton, then click bang once to refresh."
         }
       },
       {
         "box": {
-          "id": "obj-metro",
-          "maxclass": "newobj",
+          "id": "msg-refresh",
+          "maxclass": "message",
           "numinlets": 2,
           "numoutlets": 1,
-          "outlettype": ["bang"],
-          "patching_rect": [330.0, 150.0, 64.0, 22.0],
-          "text": "metro 250"
+          "outlettype": [""],
+          "patching_rect": [330.0, 150.0, 42.0, 22.0],
+          "text": "bang"
         }
       },
       {
@@ -141,17 +131,6 @@
           "outlettype": ["", ""],
           "patching_rect": [165.0, 270.0, 390.0, 22.0],
           "text": "node.script \"S:/Coding Stuff/ableton-plugin/src/maxforlive/node-bridge.cjs\""
-        }
-      },
-      {
-        "box": {
-          "id": "obj-route",
-          "maxclass": "newobj",
-          "numinlets": 1,
-          "numoutlets": 2,
-          "outlettype": ["", ""],
-          "patching_rect": [165.0, 330.0, 136.0, 22.0],
-          "text": "route plugin_message_uri"
         }
       },
       {
@@ -192,13 +171,7 @@
       },
       {
         "patchline": {
-          "source": ["obj-toggle", 0],
-          "destination": ["obj-metro", 0]
-        }
-      },
-      {
-        "patchline": {
-          "source": ["obj-metro", 0],
+          "source": ["msg-refresh", 0],
           "destination": ["obj-live-js", 0]
         }
       },
@@ -211,12 +184,6 @@
       {
         "patchline": {
           "source": ["obj-node", 0],
-          "destination": ["obj-route", 0]
-        }
-      },
-      {
-        "patchline": {
-          "source": ["obj-route", 0],
           "destination": ["obj-live-js", 0]
         }
       },

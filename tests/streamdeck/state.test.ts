@@ -5,7 +5,8 @@ import {
   createDisconnectedState,
   getVisibleSlots,
   rotateDial,
-  setActiveBank
+  setActiveBank,
+  toggleDialBank
 } from "../../src/streamdeck/state.js";
 
 function param(slot: number, overrides: Partial<RackParam> = {}): RackParam {
@@ -53,7 +54,7 @@ describe("stream deck state", () => {
     ]);
   });
 
-  it("stores device changes and maps the active bank to four visible dials", () => {
+  it("stores device changes and maps the default dial banks to four visible dials", () => {
     const state = applyBridgeMessage(
       createDisconnectedState(),
       deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)), 1)
@@ -62,7 +63,7 @@ describe("stream deck state", () => {
     expect(state.connected).toBe(true);
     expect(state.device).toMatchObject({ id: 12345, name: "Performance Rack" });
     expect(state.activeBank).toBe(1);
-    expect(getVisibleSlots(state).map((slot) => slot.param?.id)).toEqual([9004, 9005, 9006, 9007]);
+    expect(getVisibleSlots(state).map((slot) => slot.param?.id)).toEqual([9000, 9001, 9002, 9003]);
   });
 
   it("updates exactly one cached parameter from param.changed", () => {
@@ -101,23 +102,42 @@ describe("stream deck state", () => {
     expect(getVisibleSlots(setActiveBank(state, 1)).map((slot) => slot.slot)).toEqual([4, 5, 6, 7]);
   });
 
+  it("switches only the pressed dial between its two slots", () => {
+    const state = applyBridgeMessage(
+      createDisconnectedState(),
+      deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)))
+    );
+
+    const next = toggleDialBank(state, 1);
+
+    expect(getVisibleSlots(next).map((slot) => slot.slot)).toEqual([0, 5, 2, 3]);
+    expect(rotateDial(next, 1, 2, false)).toMatchObject({
+      paramId: 9005,
+      slot: 5
+    });
+    expect(rotateDial(next, 0, 2, false)).toMatchObject({
+      paramId: 9000,
+      slot: 0
+    });
+  });
+
   it("does not emit a command when rotating an empty slot", () => {
     const state = applyBridgeMessage(createDisconnectedState(), deviceChanged([param(0)]));
 
     expect(rotateDial(state, 3, 2, false)).toBeNull();
   });
 
-  it("emits param.delta for a mapped slot with the absolute parameter slot", () => {
+  it("emits param.delta for a mapped default dial slot with the absolute parameter slot", () => {
     const state = applyBridgeMessage(
       createDisconnectedState(),
-      deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)), 1)
+      deviceChanged(Array.from({ length: 8 }, (_, index) => param(index)))
     );
 
     expect(rotateDial(state, 1, -3, true)).toEqual({
       type: "param.delta",
       deviceId: 12345,
-      paramId: 9005,
-      slot: 5,
+      paramId: 9001,
+      slot: 1,
       ticks: -3,
       fine: true
     });

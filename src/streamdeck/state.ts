@@ -11,8 +11,11 @@ export interface StreamDeckState {
   device: DeviceInfo | null;
   bankCount: number;
   activeBank: 0 | 1;
+  dialBanks: DialBanks;
   params: RackParam[];
 }
+
+type DialBanks = [0 | 1, 0 | 1, 0 | 1, 0 | 1];
 
 export function createDisconnectedState(): StreamDeckState {
   return {
@@ -20,6 +23,7 @@ export function createDisconnectedState(): StreamDeckState {
     device: null,
     bankCount: 2,
     activeBank: 0,
+    dialBanks: [0, 0, 0, 0],
     params: []
   };
 }
@@ -37,6 +41,7 @@ export function applyBridgeMessage(
         device: message.device,
         bankCount: message.bankCount,
         activeBank: normalizeBank(message.activeBank),
+        dialBanks: state.dialBanks,
         params: message.params
       };
     case "param.changed":
@@ -62,19 +67,37 @@ export function applyBridgeMessage(
         ...state,
         device: null,
         activeBank: 0,
+        dialBanks: [0, 0, 0, 0],
         params: []
       };
   }
 }
 
 export function getVisibleSlots(state: StreamDeckState): BankSlot[] {
-  return buildBankView(state.params, state.activeBank);
+  return state.dialBanks.map((bank, dialIndex) => buildBankView(state.params, bank)[dialIndex]);
 }
 
 export function setActiveBank(state: StreamDeckState, bank: number): StreamDeckState {
+  const activeBank = normalizeBank(bank);
+
   return {
     ...state,
-    activeBank: normalizeBank(bank)
+    activeBank,
+    dialBanks: [activeBank, activeBank, activeBank, activeBank]
+  };
+}
+
+export function toggleDialBank(state: StreamDeckState, dialIndex: number): StreamDeckState {
+  if (!Number.isInteger(dialIndex) || dialIndex < 0 || dialIndex > 3) {
+    return state;
+  }
+
+  const nextBanks: DialBanks = [...state.dialBanks] as DialBanks;
+  nextBanks[dialIndex] = nextBanks[dialIndex] === 0 ? 1 : 0;
+
+  return {
+    ...state,
+    dialBanks: nextBanks
   };
 }
 

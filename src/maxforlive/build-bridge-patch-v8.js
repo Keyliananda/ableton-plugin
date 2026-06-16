@@ -25,10 +25,9 @@ function build() {
   var title = p.newdefault(170, 60, "comment", "Ableton Rack Bridge live-test patch");
   var node = p.newdefault(170, 130, "node.script", "node-bridge.js", "@autostart", 1);
   var print = p.newdefault(170, 265, "print", "ableton-rack-node");
-  var toggle = p.newdefault(430, 130, "toggle");
-  var metro = p.newdefault(430, 180, "metro", 250);
+  var refreshMsg = p.newdefault(430, 180, "message", "bang");
   var liveApi = p.newdefault(430, 230, "js", "live-api-adapter.js");
-  var note = p.newdefault(430, 90, "comment", "Wait for connected, then click toggle. X means polling is on.");
+  var note = p.newdefault(430, 90, "comment", "Wait for connected, select a Rack, then click bang. No metro.");
 
   ignore(title);
   ignore(note);
@@ -37,8 +36,7 @@ function build() {
   safeConnect(p, plugin, 1, plugout, 1);
   safeConnect(p, node, 0, liveApi, 0);
   safeConnect(p, node, 1, print, 0);
-  safeConnect(p, toggle, 0, metro, 0);
-  safeConnect(p, metro, 0, liveApi, 0);
+  safeConnect(p, refreshMsg, 0, liveApi, 0);
   safeConnect(p, liveApi, 0, node, 0);
 
   post("[ableton-rack-builder-v8] clean direct patch created. Host deltas now go straight into live-api-adapter.\n");

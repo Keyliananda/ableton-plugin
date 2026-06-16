@@ -19,6 +19,12 @@ Run the local live-test host:
 npm run harness:dev-live-host
 ```
 
+On Windows machines where PowerShell blocks `npm.ps1`, run:
+
+```powershell
+node .\dist\src\harness\dev-live-host.js
+```
+
 In a second terminal, connect the fake Ableton client:
 
 ```bash

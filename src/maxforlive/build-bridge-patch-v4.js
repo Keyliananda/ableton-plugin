@@ -26,12 +26,10 @@ function build() {
   var thisDevice = p.newdefault(170, 105, "live.thisdevice");
   var startMsg = p.newdefault(170, 150, "message");
   startMsg.message("set", "script start");
-  var toggle = p.newdefault(330, 103, "toggle");
-  var note = p.newdefault(365, 105, "comment", "1) click script start, 2) wait for connected, 3) turn on toggle.");
-  var metro = p.newdefault(330, 150, "metro", 250);
+  var refreshMsg = p.newdefault(330, 150, "message", "bang");
+  var note = p.newdefault(330, 115, "comment", "Click bang once after selecting a Rack. No continuous metro.");
   var liveApi = p.newdefault(330, 210, "js", ROOT + "/live-api-adapter.js");
   var node = p.newdefault(170, 270, "node.script", ROOT + "/node-bridge.cjs");
-  var route = p.newdefault(170, 330, "route", "plugin_message_uri");
   var print = p.newdefault(575, 330, "print", "ableton-rack-node");
 
   ignore(title);
@@ -41,11 +39,9 @@ function build() {
   safeConnect(p, plugin, 1, plugout, 1);
   safeConnect(p, thisDevice, 0, startMsg, 0);
   safeConnect(p, startMsg, 0, node, 0);
-  safeConnect(p, toggle, 0, metro, 0);
-  safeConnect(p, metro, 0, liveApi, 0);
+  safeConnect(p, refreshMsg, 0, liveApi, 0);
   safeConnect(p, liveApi, 0, node, 0);
-  safeConnect(p, node, 0, route, 0);
-  safeConnect(p, route, 0, liveApi, 0);
+  safeConnect(p, node, 0, liveApi, 0);
   safeConnect(p, node, 1, print, 0);
 
   outlet(0, "done");

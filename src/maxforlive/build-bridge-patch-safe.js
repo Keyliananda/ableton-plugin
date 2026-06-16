@@ -29,9 +29,10 @@ function build() {
   stop.message("set", "stop");
   var node = p.newdefault(170, 165, "node.script", "node-bridge-safe.js");
   var print = p.newdefault(170, 235, "print", "ableton-rack-node-safe");
-  var poll = p.newdefault(430, 115, "button");
+  var poll = p.newdefault(430, 115, "message");
+  poll.message("set", "bang");
   var liveApi = p.newdefault(430, 165, "js", "live-api-adapter.js");
-  var note = p.newdefault(430, 75, "comment", "1 start host, 2 click start, 3 click poll once. No metro.");
+  var note = p.newdefault(430, 75, "comment", "1 start host, 2 click start, 3 select Rack, 4 click bang. No metro.");
 
   ignore(title);
   ignore(note);

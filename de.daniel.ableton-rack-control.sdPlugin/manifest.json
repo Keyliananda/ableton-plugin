@@ -1,0 +1,46 @@
+{
+  "$schema": "https://schemas.elgato.com/streamdeck/plugins/manifest.json",
+  "Actions": [
+    {
+      "Controllers": ["Encoder"],
+      "Encoder": {
+        "layout": "$B1",
+        "TriggerDescription": {
+          "Push": "Fine adjustment while rotating",
+          "Rotate": "Adjust selected Rack parameter",
+          "Touch": "Refresh selected Rack"
+        }
+      },
+      "Icon": "imgs/action",
+      "Name": "Rack Dial",
+      "States": [
+        {
+          "Image": "imgs/action"
+        }
+      ],
+      "UUID": "de.daniel.ableton-rack-control.dial"
+    }
+  ],
+  "Author": "Daniel",
+  "Category": "Ableton Rack Control",
+  "CategoryIcon": "imgs/action",
+  "CodePath": "bin/plugin.js",
+  "Description": "Control the selected Ableton Live Rack from Stream Deck + dials.",
+  "Icon": "imgs/plugin",
+  "Name": "Ableton Rack Control",
+  "Nodejs": {
+    "Version": "24"
+  },
+  "OS": [
+    {
+      "Platform": "windows",
+      "MinimumVersion": "10"
+    }
+  ],
+  "SDKVersion": 2,
+  "Software": {
+    "MinimumVersion": "7.1"
+  },
+  "UUID": "de.daniel.ableton-rack-control",
+  "Version": "0.1.0.0"
+}

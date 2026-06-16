@@ -38,6 +38,13 @@ Start a local Stream Deck plugin stand-in:
 npm run harness:dev-live-host
 ```
 
+On Windows machines where PowerShell blocks `npm.ps1`, run the built host
+directly:
+
+```powershell
+node .\dist\src\harness\dev-live-host.js
+```
+
 It starts `StreamDeckBridgeServer` on `ws://127.0.0.1:17375`, registers four
 dial contexts, logs feedback payloads to the console, and accepts simple
 interactive commands:

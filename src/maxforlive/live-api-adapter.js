@@ -7,6 +7,8 @@ var activeBank = 0;
 var lastSnapshotJson = "";
 var selectedDeviceId = 0;
 var selectedParams = [];
+var COARSE_CONTINUOUS_DIVISOR = 128;
+var FINE_CONTINUOUS_DIVISOR = 1024;
 
 function loadbang() {
   bridge_hello();
@@ -21,10 +23,11 @@ function bridge_hello() {
 }
 
 function bang() {
-  poll();
+  bridge_hello();
+  poll(true);
 }
 
-function poll() {
+function poll(force) {
   try {
     var device = new LiveAPI(null, "live_set view selected_track view selected_device");
     var deviceId = Number(device.id || 0);
@@ -55,7 +58,7 @@ function poll() {
     selectedDeviceId = deviceId;
     selectedParams = params;
 
-    if (snapshotJson !== lastSnapshotJson) {
+    if (force || snapshotJson !== lastSnapshotJson) {
       sendBridgeMessage(snapshot);
       lastSnapshotJson = snapshotJson;
     }
@@ -104,12 +107,23 @@ function applyParamDelta(message) {
 
   var nextValue = param.isQuantized
     ? clamp(Math.round(param.value) + message.ticks, param.min, param.max)
-    : clamp(param.value + message.ticks * ((param.max - param.min) / (message.fine ? 1024 : 256)), param.min, param.max);
+    : clamp(param.value + message.ticks * ((param.max - param.min) / (message.fine ? FINE_CONTINUOUS_DIVISOR : COARSE_CONTINUOUS_DIVISOR)), param.min, param.max);
 
   try {
     var liveParam = new LiveAPI(null, "id " + param.id);
     liveParam.set("value", nextValue);
-    poll();
+    param.value = nextValue;
+    param.displayValue = readDisplayValue(liveParam, nextValue);
+    param.normalized = param.max === param.min ? 0 : clamp((nextValue - param.min) / (param.max - param.min), 0, 1);
+    sendBridgeMessage({
+      type: "param.changed",
+      deviceId: selectedDeviceId,
+      paramId: param.id,
+      slot: param.slot,
+      value: param.value,
+      displayValue: param.displayValue,
+      normalized: param.normalized
+    });
   } catch (error) {
     post("[ableton-rack-liveapi] set value failed: " + error + "\n");
   }

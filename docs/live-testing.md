@@ -2,12 +2,19 @@
 
 This is the first real Ableton smoke test. It uses:
 
-- `npm run harness:dev-live-host` as the Stream Deck plugin stand-in.
+- `node .\dist\src\harness\dev-live-host.js` as the Stream Deck plugin stand-in.
 - a Max for Live Audio Effect with one `js` object and one `node.script` object.
 
 ## 1. Start The Local Host
 
 Open PowerShell in the repo and run:
+
+```powershell
+node .\dist\src\harness\dev-live-host.js
+```
+
+If your PowerShell execution policy allows `npm.ps1`, this equivalent command
+also works:
 
 ```powershell
 npm run harness:dev-live-host
@@ -29,32 +36,31 @@ In Ableton Live:
 js "S:/Coding Stuff/ableton-plugin/src/maxforlive/build-bridge-patch.js"
 ```
 
-The builder creates the rest of the patch automatically. Turn on the created
-toggle so the `metro 250` polls Ableton.
+The builder creates the rest of the patch automatically. It uses a manual
+`bang` refresh instead of a continuous metro, which keeps Ableton responsive.
 
 If you prefer to patch manually, add these objects:
 
 ```text
 [loadbang]
 [message script start]
-[metro 250]
-[toggle]
+[message bang]
 [js "S:/Coding Stuff/ableton-plugin/src/maxforlive/live-api-adapter.js"]
 [node.script "S:/Coding Stuff/ableton-plugin/src/maxforlive/node-bridge.cjs"]
-[route plugin_message_uri]
 ```
 
 Wire them like this:
 
 ```text
 [loadbang] -> [message script start] -> [node.script ...]
-[toggle] -> [metro 250] -> [js ...]
+[message bang] -> [js ...]
 [js ...] left outlet -> [node.script ...]
-[node.script ...] left outlet -> [route plugin_message_uri]
-[route plugin_message_uri] left outlet -> [js ...]
+[node.script ...] left outlet -> [js ...]
 ```
 
-Turn on the toggle so the `metro 250` polls Ableton.
+Click `script start`, select the Rack in Ableton, then click `bang` once to
+send the current mapping to the host. The bridge polls again after each
+successful dial write.
 
 ## 3. Select A Rack
 
@@ -75,6 +81,7 @@ The PowerShell host should print feedback lines such as:
 In the PowerShell host, type:
 
 ```text
+state
 r 0 1
 r 1 -2
 b1
