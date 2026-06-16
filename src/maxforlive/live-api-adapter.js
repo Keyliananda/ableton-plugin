@@ -8,6 +8,8 @@ var lastSnapshotJson = "";
 var selectedDeviceId = 0;
 var selectedParams = [];
 var selectedDeviceOnParam = null;
+var selectedParamObservers = [];
+var selectedParamObserverSignature = "";
 var COARSE_CONTINUOUS_DIVISOR = 128;
 var FINE_CONTINUOUS_DIVISOR = 1024;
 var DEBUG = false;
@@ -165,6 +167,7 @@ function poll(force) {
       selectedDeviceId = 0;
       selectedParams = [];
       selectedDeviceOnParam = null;
+      clearSelectedParamObservers();
       post("[ableton-rack-liveapi] no selected device\n");
       sendBridgeMessage({ type: "device.cleared", reason: "no-selected-device" });
       lastSnapshotJson = "";
@@ -190,6 +193,7 @@ function poll(force) {
 
     selectedDeviceId = deviceId;
     selectedParams = params;
+    observeSelectedParams(params);
 
     if (force || snapshotJson !== lastSnapshotJson) {
       debugLog("[ableton-rack-liveapi] sending device.changed id=" + deviceId + " params=" + params.length + "\n");
@@ -199,6 +203,91 @@ function poll(force) {
   } catch (error) {
     post("[ableton-rack-liveapi] poll failed: " + error + "\n");
   }
+}
+
+function observeSelectedParams(params) {
+  var signature = params.map(function(param) {
+    return String(param.id);
+  }).join(",");
+
+  if (signature === selectedParamObserverSignature) {
+    return;
+  }
+
+  clearSelectedParamObservers();
+  selectedParamObserverSignature = signature;
+
+  for (var i = 0; i < params.length; i += 1) {
+    observeSelectedParam(params[i].id);
+  }
+}
+
+function observeSelectedParam(paramId) {
+  try {
+    var observer = new LiveAPI(function() {
+      selectedParamValueChanged(paramId);
+    }, "id " + paramId);
+    observer.property = "value";
+    selectedParamObservers.push(observer);
+  } catch (error) {
+    post("[ableton-rack-liveapi] parameter observer failed: " + error + "\n");
+  }
+}
+
+function clearSelectedParamObservers() {
+  for (var i = 0; i < selectedParamObservers.length; i += 1) {
+    try {
+      selectedParamObservers[i].property = "";
+    } catch (_) {
+    }
+  }
+
+  selectedParamObservers = [];
+  selectedParamObserverSignature = "";
+}
+
+function selectedParamValueChanged(paramId) {
+  var param = findSelectedParamById(paramId);
+
+  if (!param || !param.isEnabled || !selectedDeviceId) {
+    return;
+  }
+
+  try {
+    var liveParam = new LiveAPI(null, "id " + param.id);
+    var value = readNumber(liveParam, "value", param.value);
+    var displayValue = readDisplayValue(liveParam, value);
+    var normalized = param.max === param.min ? 0 : clamp((value - param.min) / (param.max - param.min), 0, 1);
+
+    if (value === param.value && displayValue === param.displayValue && normalized === param.normalized) {
+      return;
+    }
+
+    param.value = value;
+    param.displayValue = displayValue;
+    param.normalized = normalized;
+    sendBridgeMessage({
+      type: "param.changed",
+      deviceId: selectedDeviceId,
+      paramId: param.id,
+      slot: param.slot,
+      value: param.value,
+      displayValue: param.displayValue,
+      normalized: param.normalized
+    });
+  } catch (error) {
+    post("[ableton-rack-liveapi] parameter observer update failed: " + error + "\n");
+  }
+}
+
+function findSelectedParamById(paramId) {
+  for (var i = 0; i < selectedParams.length; i += 1) {
+    if (selectedParams[i].id === paramId) {
+      return selectedParams[i];
+    }
+  }
+
+  return null;
 }
 
 function plugin_message_uri(encoded) {

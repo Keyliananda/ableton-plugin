@@ -54,6 +54,17 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain("new Task(runSelectionWatch");
   });
 
+  it("observes selected parameter values so mouse-driven macro changes update feedback", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var selectedParamObservers = []");
+    expect(source).toContain("observeSelectedParams(params)");
+    expect(source).toContain("function observeSelectedParams(params)");
+    expect(source).toContain('observer.property = "value"');
+    expect(source).toContain("function selectedParamValueChanged(paramId)");
+    expect(source).toContain('type: "param.changed"');
+  });
+
   it("observes selected track and selected device changes for faster rack switching", () => {
     const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
 
