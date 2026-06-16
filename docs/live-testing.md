@@ -55,14 +55,17 @@ In Ableton Live:
 js S:/AbletonRackBridge/build-bridge-patch-v5.js
 ```
 
-The builder creates the rest of the patch automatically. It uses a manual
-`bang` refresh instead of a continuous metro, which keeps Ableton responsive.
+The builder creates the rest of the patch automatically. The node bridge starts
+automatically through `live.thisdevice`, and the small `script start`,
+`script stop`, and `bang` messages are only recovery controls while testing.
 
 If you prefer to patch manually, add these objects:
 
 ```text
 [loadbang]
+[live.thisdevice]
 [message script start]
+[message script stop]
 [message bang]
 [js S:/AbletonRackBridge/live-api-adapter.js]
 [node.script S:/AbletonRackBridge/node-bridge-safe.js]
@@ -71,15 +74,17 @@ If you prefer to patch manually, add these objects:
 Wire them like this:
 
 ```text
-[loadbang] -> [message script start] -> [node.script ...]
+[live.thisdevice] -> [message script start] -> [node.script ...]
+[message script stop] -> [node.script ...]
 [message bang] -> [js ...]
 [js ...] left outlet -> [node.script ...]
 [node.script ...] left outlet -> [js ...]
 ```
 
-Click `script start`, select the Rack in Ableton, then click `bang` once to
-send the current mapping to the host. The bridge polls again after each
-successful dial write.
+Reload the Max device, select the Rack in Ableton, and the bridge should start
+and refresh automatically. Click `script start` or `bang` only as manual
+fallbacks while testing. The bridge polls again after each successful dial
+write.
 
 After the bridge is connected, the dev host can also request that same selected
 Rack refresh from the console with:

@@ -20,12 +20,24 @@ describe("Max node bridge scripts", () => {
     }
   });
 
-  it("logs websocket boundary traffic for startup diagnostics", () => {
+  it("retries bridge hello after connect so Max JS can finish loading", () => {
     for (const path of ["src/maxforlive/node-bridge-safe.js", "src/maxforlive/node-bridge.cjs"]) {
       const source = readFileSync(resolve(path), "utf8");
 
-      expect(source).toContain("sent bridge.hello");
-      expect(source).toContain("received from plugin");
+      expect(source).toContain("HELLO_RETRY_DELAYS_MS");
+      expect(source).toContain("function sendBridgeHello()");
+      expect(source).toContain("setTimeout(sendBridgeHello");
+    }
+  });
+
+  it("keeps websocket boundary traffic behind the debug logger", () => {
+    for (const path of ["src/maxforlive/node-bridge-safe.js", "src/maxforlive/node-bridge.cjs"]) {
+      const source = readFileSync(resolve(path), "utf8");
+
+      expect(source).toContain("const DEBUG = false");
+      expect(source).toContain("function debugLog(message)");
+      expect(source).toContain('debugLog("sent bridge.hello")');
+      expect(source).toContain("debugLog(`received from plugin: ${text}`)");
     }
   });
 });

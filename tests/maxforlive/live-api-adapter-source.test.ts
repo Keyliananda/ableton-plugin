@@ -23,4 +23,23 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain("function loadbang()");
     expect(source).not.toContain("function loadbang() {\n  bridge_hello();\n}");
   });
+
+  it("keeps routine startup and refresh logs behind the debug logger", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var DEBUG = false");
+    expect(source).toContain("function debugLog(message)");
+    expect(source).toContain('debugLog("[ableton-rack-liveapi] sending bridge.hello\\n")');
+    expect(source).toContain('debugLog("[ableton-rack-liveapi] received device.refresh\\n")');
+  });
+
+  it("polls briefly after bridge connect to catch Ableton selecting the Rack after device load", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var STARTUP_POLL_INTERVAL_MS");
+    expect(source).toContain("var STARTUP_POLL_TICKS");
+    expect(source).toContain("function startStartupPoll()");
+    expect(source).toContain("startStartupPoll();");
+    expect(source).toContain("new Task(runStartupPoll");
+  });
 });

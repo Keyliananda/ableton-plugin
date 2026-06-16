@@ -3,6 +3,8 @@ const WebSocket = require("ws");
 
 const DEFAULT_URL = "ws://127.0.0.1:17375";
 const RECONNECT_DELAY_MS = 5000;
+const DEBUG = false;
+const HELLO_RETRY_DELAYS_MS = [250, 1000];
 const BRIDGE_HELLO = {
   type: "bridge.hello",
   protocolVersion: 1,
@@ -19,6 +21,12 @@ function log(message) {
   maxApi.post(`[ableton-rack-node-safe] ${message}`);
 }
 
+function debugLog(message) {
+  if (DEBUG) {
+    log(message);
+  }
+}
+
 function connect() {
   clearReconnect();
   closeSocket();
@@ -29,8 +37,10 @@ function connect() {
   socket.on("open", () => {
     lastError = "";
     log(`connected to ${url}`);
-    socket.send(JSON.stringify(BRIDGE_HELLO));
-    log("sent bridge.hello");
+    sendBridgeHello();
+    for (const delay of HELLO_RETRY_DELAYS_MS) {
+      setTimeout(sendBridgeHello, delay);
+    }
     maxApi.outlet("bridge_connected");
   });
 
@@ -43,7 +53,7 @@ function connect() {
       return;
     }
 
-    log(`received from plugin: ${text}`);
+    debugLog(`received from plugin: ${text}`);
     maxApi.outlet("plugin_message_uri", encodeURIComponent(text));
   });
 
@@ -99,6 +109,15 @@ function sendJsonText(text) {
   }
 
   socket.send(text);
+}
+
+function sendBridgeHello() {
+  if (socket === null || socket.readyState !== WebSocket.OPEN) {
+    return;
+  }
+
+  socket.send(JSON.stringify(BRIDGE_HELLO));
+  debugLog("sent bridge.hello");
 }
 
 maxApi.addHandler("start", () => {

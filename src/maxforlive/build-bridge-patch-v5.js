@@ -28,8 +28,11 @@ function build() {
   var thisDevice = p.newdefault(170, 105, "live.thisdevice");
   var startMsg = p.newdefault(170, 150, "message");
   startMsg.message("set", "script start");
-  var refreshMsg = p.newdefault(330, 150, "message", "bang");
-  var note = p.newdefault(330, 115, "comment", "Click bang once after selecting a Rack. No continuous metro.");
+  var stopMsg = p.newdefault(260, 150, "message");
+  stopMsg.message("set", "script stop");
+  var refreshMsg = p.newdefault(350, 150, "message");
+  refreshMsg.message("set", "bang");
+  var note = p.newdefault(350, 115, "comment", "Recovery controls: start, stop, refresh. Normal mode starts automatically.");
   var liveApi = p.newdefault(330, 210, "js", ROOT + "/live-api-adapter.js");
   var node = p.newdefault(170, 270, "node.script", ROOT + "/node-bridge-safe.js");
   var print = p.newdefault(575, 330, "print", "ableton-rack-node-safe");
@@ -41,6 +44,7 @@ function build() {
   safeConnect(p, plugin, 1, plugout, 1);
   safeConnect(p, thisDevice, 0, startMsg, 0);
   safeConnect(p, startMsg, 0, node, 0);
+  safeConnect(p, stopMsg, 0, node, 0);
   safeConnect(p, refreshMsg, 0, liveApi, 0);
   safeConnect(p, liveApi, 0, node, 0);
   safeConnect(p, node, 0, liveApi, 0);
@@ -70,10 +74,12 @@ function cleanupOldBridgeBoxes(patcher) {
       text === "live.thisdevice" ||
       (text === "metro 250" || text === "metro 1000") ||
       text === "script start" ||
+      text === "script stop" ||
       text === "route plugin_message_uri" ||
       text === "print ableton-rack-node" ||
       text === "print ableton-rack-node-safe" ||
       text === "Ableton Rack Bridge live-test patch" ||
+      text.indexOf("Recovery controls: start, stop, refresh") !== -1 ||
       text.indexOf("Turn on to poll Ableton") !== -1 ||
       text.indexOf("wait for connected") !== -1 ||
       maxclass === "toggle"

@@ -9,13 +9,23 @@ var selectedDeviceId = 0;
 var selectedParams = [];
 var COARSE_CONTINUOUS_DIVISOR = 128;
 var FINE_CONTINUOUS_DIVISOR = 1024;
+var DEBUG = false;
+var STARTUP_POLL_INTERVAL_MS = 500;
+var STARTUP_POLL_TICKS = 20;
+var startupPollTask = null;
+var startupPollTicksRemaining = 0;
 
 function loadbang() {
-  post("[ableton-rack-liveapi] loaded\n");
+}
+
+function debugLog(message) {
+  if (DEBUG) {
+    post(message);
+  }
 }
 
 function bridge_hello() {
-  post("[ableton-rack-liveapi] sending bridge.hello\n");
+  debugLog("[ableton-rack-liveapi] sending bridge.hello\n");
   sendBridgeMessage({
     type: "bridge.hello",
     protocolVersion: PROTOCOL_VERSION,
@@ -24,13 +34,39 @@ function bridge_hello() {
 }
 
 function bridge_connected() {
-  post("[ableton-rack-liveapi] node bridge connected\n");
+  debugLog("[ableton-rack-liveapi] node bridge connected\n");
   bridge_hello();
+  startStartupPoll();
 }
 
 function bang() {
   bridge_hello();
   poll(true);
+}
+
+function startStartupPoll() {
+  startupPollTicksRemaining = STARTUP_POLL_TICKS;
+
+  if (startupPollTask) {
+    startupPollTask.cancel();
+  }
+
+  startupPollTask = new Task(runStartupPoll, this);
+  startupPollTask.interval = STARTUP_POLL_INTERVAL_MS;
+  startupPollTask.repeat();
+}
+
+function runStartupPoll() {
+  if (startupPollTicksRemaining <= 0) {
+    if (startupPollTask) {
+      startupPollTask.cancel();
+    }
+    startupPollTask = null;
+    return;
+  }
+
+  startupPollTicksRemaining -= 1;
+  poll(false);
 }
 
 function poll(force) {
@@ -66,7 +102,7 @@ function poll(force) {
     selectedParams = params;
 
     if (force || snapshotJson !== lastSnapshotJson) {
-      post("[ableton-rack-liveapi] sending device.changed id=" + deviceId + " params=" + params.length + "\n");
+      debugLog("[ableton-rack-liveapi] sending device.changed id=" + deviceId + " params=" + params.length + "\n");
       sendBridgeMessage(snapshot);
       lastSnapshotJson = snapshotJson;
     }
@@ -86,7 +122,7 @@ function plugin_message_uri(encoded) {
 
 function handlePluginMessage(message) {
   if (message.type === "device.refresh") {
-    post("[ableton-rack-liveapi] received device.refresh\n");
+    debugLog("[ableton-rack-liveapi] received device.refresh\n");
     poll(true);
     return;
   }
