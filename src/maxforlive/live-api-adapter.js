@@ -12,8 +12,10 @@ var FINE_CONTINUOUS_DIVISOR = 1024;
 var DEBUG = false;
 var STARTUP_POLL_INTERVAL_MS = 500;
 var STARTUP_POLL_TICKS = 20;
+var SELECTION_WATCH_INTERVAL_MS = 2000;
 var startupPollTask = null;
 var startupPollTicksRemaining = 0;
+var selectionWatchTask = null;
 
 function loadbang() {
 }
@@ -37,6 +39,7 @@ function bridge_connected() {
   debugLog("[ableton-rack-liveapi] node bridge connected\n");
   bridge_hello();
   startStartupPoll();
+  startSelectionWatch();
 }
 
 function bang() {
@@ -67,6 +70,34 @@ function runStartupPoll() {
 
   startupPollTicksRemaining -= 1;
   poll(false);
+}
+
+function startSelectionWatch() {
+  if (selectionWatchTask) {
+    selectionWatchTask.cancel();
+  }
+
+  selectionWatchTask = new Task(runSelectionWatch, this);
+  selectionWatchTask.interval = SELECTION_WATCH_INTERVAL_MS;
+  selectionWatchTask.repeat();
+}
+
+function runSelectionWatch() {
+  var deviceId = readSelectedDeviceId();
+
+  if (deviceId !== selectedDeviceId) {
+    poll(true);
+  }
+}
+
+function readSelectedDeviceId() {
+  try {
+    var device = new LiveAPI(null, "live_set view selected_track view selected_device");
+    return Number(device.id || 0);
+  } catch (error) {
+    post("[ableton-rack-liveapi] selected device watch failed: " + error + "\n");
+    return selectedDeviceId;
+  }
 }
 
 function poll(force) {

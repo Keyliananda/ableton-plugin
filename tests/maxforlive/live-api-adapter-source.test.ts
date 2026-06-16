@@ -42,4 +42,15 @@ describe("live-api-adapter.js", () => {
     expect(source).toContain("startStartupPoll();");
     expect(source).toContain("new Task(runStartupPoll");
   });
+
+  it("watches selected device id gently without repeatedly reading parameters", () => {
+    const source = readFileSync(resolve("src/maxforlive/live-api-adapter.js"), "utf8");
+
+    expect(source).toContain("var SELECTION_WATCH_INTERVAL_MS = 2000");
+    expect(source).toContain("function startSelectionWatch()");
+    expect(source).toContain("function runSelectionWatch()");
+    expect(source).toContain("function readSelectedDeviceId()");
+    expect(source).toContain("poll(true);");
+    expect(source).toContain("new Task(runSelectionWatch");
+  });
 });
